@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cytoscape Network Visualization</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+    <script src="https://unpkg.com/cytoscape-svg@0.4.0/cytoscape-svg.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="controls">
+        <label for="layout-select">Layout:</label>
+        <select id="layout-select">
+            <option value="grid">Grid</option>
+            <option value="circle">Circle</option>
+            <option value="concentric">Concentric</option>
+            <option value="breadthfirst">Breadthfirst</option>
+            <option value="cose">Cose (Physics)</option>
+            <option value="random">Random</option>
+        </select>
+        <button id="download-svg">Download SVG</button>
+    </div>
+    <div id="cy"></div>
+    <script src="script.js"></script>
+</body>
+
+</html>
