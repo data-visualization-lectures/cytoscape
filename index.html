@@ -14,33 +14,55 @@
 
 <body>
     <div id="controls">
-        <label for="layout-select">Layout:</label>
-        <select id="layout-select">
-            <option value="grid">Grid</option>
-            <option value="circle">Circle</option>
-            <option value="concentric">Concentric</option>
-            <option value="breadthfirst">Breadthfirst</option>
-            <option value="cose">Cose (Physics)</option>
-            <option value="random">Random</option>
-        </select>
-        <label for="easing-select">Easing:</label>
-        <select id="easing-select">
-            <option value="ease">Ease</option>
-            <option value="linear">Linear</option>
-            <option value="ease-in">Ease In</option>
-            <option value="ease-out">Ease Out</option>
-            <option value="ease-in-out">Ease In Out</option>
-        </select>
-        <label for="node-color-select">Color:</label>
-        <select id="node-color-select">
-            <option value="">(None)</option>
-        </select>
-        <label for="node-size-select">Size:</label>
-        <select id="node-size-select">
-            <option value="">(None)</option>
-        </select>
-        <button id="download-svg">Download SVG</button>
-        <input type="file" id="file-upload" accept=".gexf, .graphml">
+        <div class="control-row">
+            <label for="layout-select">Layout:</label>
+            <select id="layout-select">
+                <option value="grid">Grid</option>
+                <option value="circle">Circle</option>
+                <option value="concentric">Concentric</option>
+                <option value="breadthfirst">Breadthfirst</option>
+                <option value="cose">Cose (Physics)</option>
+                <option value="random">Random</option>
+            </select>
+            <label for="easing-select">Easing:</label>
+            <select id="easing-select">
+                <option value="ease">Ease</option>
+                <option value="linear">Linear</option>
+                <option value="ease-in">Ease In</option>
+                <option value="ease-out">Ease Out</option>
+                <option value="ease-in-out">Ease In Out</option>
+            </select>
+            <label for="node-color-select">Color:</label>
+            <select id="node-color-select">
+                <option value="">(None)</option>
+            </select>
+            <label for="node-size-select">Size:</label>
+            <select id="node-size-select">
+                <option value="">(None)</option>
+            </select>
+        </div>
+        <div class="control-row bottom-row">
+            <input type="file" id="file-upload" accept=".gexf, .graphml">
+            <div class="sample-dataset-container">
+                <label for="sample-dataset-select">Sample:</label>
+                <select id="sample-dataset-select">
+                    <optgroup label="Social Networks">
+                        <option value="lesmis" selected>Les Misérables</option>
+                        <option value="got">Game of Thrones</option>
+                        <option value="marvel">Marvel Universe</option>
+                        <option value="quakers">Quakers (17th Century)</option>
+                    </optgroup>
+                    <optgroup label="Scientific Networks">
+                        <option value="eurosis">EuroSiS</option>
+                        <option value="diseasome">Diseasome</option>
+                        <option value="celegans">C. Elegans</option>
+                        <option value="java">Java Dependencies</option>
+                        <option value="powergrid">Power Grid</option>
+                    </optgroup>
+                </select>
+            </div>
+            <button id="download-svg">Download SVG</button>
+        </div>
     </div>
     <div id="cy"></div>
     <script src="script.js"></script>

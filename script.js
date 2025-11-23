@@ -207,6 +207,120 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Sample datasets (local GEXF and GraphML files)
+    const sampleDatasets = {
+        'eurosis': 'data/samples/eurosis.gexf',
+        'diseasome': 'data/samples/diseasome.gexf',
+        'celegans': 'data/samples/celegans.gexf',
+        'java': 'data/samples/java.gexf',
+        'lesmis': 'data/samples/les-miserables.gexf',
+        'powergrid': 'data/samples/power-grid.gexf',
+        'got': 'data/samples/game-of-thrones.graphml',
+        'marvel': 'data/samples/marvel.graphml',
+        'quakers': 'data/samples/quakers.graphml'
+    };
+
+    const sampleDatasetSelect = document.getElementById('sample-dataset-select');
+    sampleDatasetSelect.addEventListener('change', async function () {
+        const datasetKey = this.value;
+
+        try {
+            // Show loading state
+            this.disabled = true;
+
+            const url = sampleDatasets[datasetKey];
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch dataset: ${response.statusText}`);
+            }
+
+            // Get the file content
+            const content = await response.text();
+
+            // Detect file format based on URL extension
+            const isGraphML = url.endsWith('.graphml');
+
+            try {
+                // Parse based on format (returns a MultiGraph)
+                const graph = isGraphML
+                    ? graphologyLibrary.graphml.parse(graphology.MultiGraph, content)
+                    : graphologyLibrary.gexf.parse(graphology.MultiGraph, content);
+
+                const elements = [];
+
+                // Convert nodes
+                graph.forEachNode((node, attributes) => {
+                    elements.push({
+                        group: 'nodes',
+                        data: {
+                            id: node,
+                            label: attributes.label || node,
+                            ...attributes
+                        },
+                        position: {
+                            x: attributes.x || Math.random() * 800,
+                            y: attributes.y || Math.random() * 600
+                        },
+                        style: {
+                            'background-color': '#666',
+                            'width': 30,
+                            'height': 30,
+                            'label': attributes.label || node
+                        }
+                    });
+                });
+
+                // Convert edges
+                graph.forEachEdge((edge, attributes, source, target) => {
+                    elements.push({
+                        group: 'edges',
+                        data: {
+                            id: edge,
+                            source: source,
+                            target: target,
+                            ...attributes
+                        }
+                    });
+                });
+
+                // Update Cytoscape
+                cy.elements().remove();
+                cy.add(elements);
+
+                // Update attributes and styles
+                extractAndPopulateAttributes();
+                updateNodeStyle();
+
+                // Apply layout
+                const layoutName = document.getElementById('layout-select').value;
+                const easingName = document.getElementById('easing-select').value;
+                cy.layout({ name: layoutName, animate: true, animationEasing: easingName }).run();
+
+                // Re-enable dropdown
+                sampleDatasetSelect.disabled = false;
+
+            } catch (error) {
+                console.error(`Error parsing ${datasetKey} dataset:`, error);
+                alert(`Failed to parse ${datasetKey} dataset. Please try another one.`);
+                sampleDatasetSelect.value = '';
+                sampleDatasetSelect.disabled = false;
+            }
+
+        } catch (error) {
+            console.error(`Error loading ${datasetKey} dataset:`, error);
+            alert(`Failed to load ${datasetKey} dataset. Please check your internet connection.`);
+            this.value = '';
+            this.disabled = false;
+        }
+    });
+
+    // Auto-load the default dataset (Les Misérables) on page load
+    window.addEventListener('load', function () {
+        // Trigger the change event to load the default selected dataset
+        sampleDatasetSelect.dispatchEvent(new Event('change'));
+    });
+
     const fileUpload = document.getElementById('file-upload');
     fileUpload.addEventListener('change', function (event) {
         const file = event.target.files[0];

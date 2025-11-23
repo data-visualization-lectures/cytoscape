@@ -25,8 +25,19 @@ body {
     backdrop-filter: blur(5px);
     border: 1px solid rgba(0, 0, 0, 0.05);
     display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.control-row {
+    display: flex;
     align-items: center;
     gap: 10px;
+    width: 100%;
+}
+
+.bottom-row {
+    justify-content: space-between;
 }
 
 #controls label {
@@ -78,7 +89,33 @@ body {
 }
 
 #file-upload {
-    margin-left: 10px;
     font-size: 14px;
     color: #333;
+}
+
+.sample-dataset-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#sample-dataset-select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: white;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#sample-dataset-select:hover {
+    border-color: #bbb;
+}
+
+#sample-dataset-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
 }
