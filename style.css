@@ -38,6 +38,8 @@ body {
 
 .bottom-row {
     justify-content: space-between;
+    padding-top: 15px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 #controls label {
