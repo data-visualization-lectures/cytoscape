@@ -250,6 +250,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 const elements = [];
 
                 // Convert nodes
+                const containerWidth = cy.width();
+                const containerHeight = cy.height();
+
                 graph.forEachNode((node, attributes) => {
                     elements.push({
                         group: 'nodes',
@@ -259,8 +262,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             ...attributes
                         },
                         position: {
-                            x: attributes.x || Math.random() * 800,
-                            y: attributes.y || Math.random() * 600
+                            x: attributes.x || (containerWidth / 2 + (Math.random() - 0.5) * containerWidth * 0.8),
+                            y: attributes.y || (containerHeight / 2 + (Math.random() - 0.5) * containerHeight * 0.8)
                         },
                         style: {
                             'background-color': '#666',
@@ -348,6 +351,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 const elements = [];
 
                 // Convert nodes
+                const containerWidth = cy.width();
+                const containerHeight = cy.height();
+
                 graph.forEachNode((node, attributes) => {
                     elements.push({
                         group: 'nodes',
@@ -357,8 +363,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             ...attributes
                         },
                         position: {
-                            x: attributes.x || Math.random() * 800,
-                            y: attributes.y || Math.random() * 600
+                            x: attributes.x || (containerWidth / 2 + (Math.random() - 0.5) * containerWidth * 0.8),
+                            y: attributes.y || (containerHeight / 2 + (Math.random() - 0.5) * containerHeight * 0.8)
                         },
                         // Set default style initially
                         style: {

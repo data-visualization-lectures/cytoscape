@@ -42,9 +42,10 @@
             </select>
         </div>
         <div class="control-row bottom-row">
+            <label for="file-upload">Import Dataset:</label>
             <input type="file" id="file-upload" accept=".gexf, .graphml">
             <div class="sample-dataset-container">
-                <label for="sample-dataset-select">Sample:</label>
+                <label for="sample-dataset-select">Sample Datasets:</label>
                 <select id="sample-dataset-select">
                     <optgroup label="Social Networks">
                         <option value="lesmis" selected>Les Misérables</option>
@@ -61,6 +62,8 @@
                     </optgroup>
                 </select>
             </div>
+        </div>
+        <div class="control-row bottom-row">
             <button id="download-svg">Download SVG</button>
         </div>
     </div>

@@ -37,9 +37,16 @@ body {
 }
 
 .bottom-row {
-    justify-content: space-between;
     padding-top: 15px;
     border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.bottom-row:nth-child(2) {
+    justify-content: space-between;
+}
+
+.bottom-row:nth-child(3) {
+    justify-content: flex-start;
 }
 
 #controls label {
