@@ -105,4 +105,76 @@ document.addEventListener('DOMContentLoaded', function () {
             URL.revokeObjectURL(url);
         }
     });
+
+    const fileUpload = document.getElementById('file-upload');
+    fileUpload.addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (!file) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const content = e.target.result;
+            try {
+                let graph;
+                if (file.name.endsWith('.gexf')) {
+                    // Parse GEXF using graphology
+                    graph = graphology.Graph.from(graphologyLibrary.gexf.parse(graphology.MultiGraph, content));
+                } else if (file.name.endsWith('.graphml')) {
+                    // Parse GraphML using graphology
+                    graph = graphology.Graph.from(graphologyLibrary.graphml.parse(graphology.MultiGraph, content));
+                } else {
+                    alert('Unsupported file format. Please upload .gexf or .graphml files.');
+                    return;
+                }
+
+
+                const elements = [];
+
+                // Convert nodes
+                graph.forEachNode((node, attributes) => {
+                    elements.push({
+                        group: 'nodes',
+                        data: {
+                            id: node,
+                            label: attributes.label || node,
+                            ...attributes
+                        },
+                        position: {
+                            x: attributes.x || Math.random() * 800,
+                            y: attributes.y || Math.random() * 600
+                        }
+                    });
+                });
+
+                // Convert edges
+                graph.forEachEdge((edge, attributes, source, target) => {
+                    elements.push({
+                        group: 'edges',
+                        data: {
+                            id: edge,
+                            source: source,
+                            target: target,
+                            ...attributes
+                        }
+                    });
+                });
+
+
+                // Update Cytoscape
+                cy.elements().remove();
+                cy.add(elements);
+
+                // Apply layout if positions are not defined or to reset view
+                const layoutName = document.getElementById('layout-select').value;
+                cy.layout({ name: layoutName, animate: true }).run();
+
+            } catch (error) {
+                console.error('Error parsing file:', error);
+                alert('Failed to parse file. Please check the console for details.');
+            }
+        };
+        reader.readAsText(file);
+    });
 });

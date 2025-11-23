@@ -7,6 +7,8 @@
     <title>Cytoscape Network Visualization</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
     <script src="https://unpkg.com/cytoscape-svg@0.4.0/cytoscape-svg.js"></script>
+    <script src="https://unpkg.com/graphology@0.25.4/dist/graphology.umd.js"></script>
+    <script src="https://unpkg.com/graphology-library@0.8.0/dist/graphology-library.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -22,6 +24,7 @@
             <option value="random">Random</option>
         </select>
         <button id="download-svg">Download SVG</button>
+        <input type="file" id="file-upload" accept=".gexf, .graphml">
     </div>
     <div id="cy"></div>
     <script src="script.js"></script>
