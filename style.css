@@ -35,7 +35,7 @@ body {
     font-size: 14px;
 }
 
-#layout-select, #easing-select {
+#layout-select, #easing-select, #node-color-select, #node-size-select {
     padding: 8px;
     border-radius: 4px;
     border: 1px solid #ccc;

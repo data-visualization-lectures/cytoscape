@@ -4,13 +4,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         elements: [
             // Nodes
-            { data: { id: 'a', label: 'Node A', type: 'core' } },
-            { data: { id: 'b', label: 'Node B', type: 'core' } },
-            { data: { id: 'c', label: 'Node C', type: 'leaf' } },
-            { data: { id: 'd', label: 'Node D', type: 'leaf' } },
-            { data: { id: 'e', label: 'Node E', type: 'leaf' } },
-            { data: { id: 'f', label: 'Node F', type: 'leaf' } },
-            { data: { id: 'g', label: 'Node G', type: 'leaf' } },
+            { data: { id: 'a', label: 'Node A', category: 'A', score: 10 } },
+            { data: { id: 'b', label: 'Node B', category: 'A', score: 20 } },
+            { data: { id: 'c', label: 'Node C', category: 'B', score: 30 } },
+            { data: { id: 'd', label: 'Node D', category: 'B', score: 40 } },
+            { data: { id: 'e', label: 'Node E', category: 'C', score: 50 } },
+            { data: { id: 'f', label: 'Node F', category: 'C', score: 60 } },
+            { data: { id: 'g', label: 'Node G', category: 'C', score: 70 } },
 
             // Edges
             { data: { source: 'a', target: 'b' } },
@@ -25,25 +25,16 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 selector: 'node',
                 style: {
-                    'background-color': '#007bff',
+                    'background-color': '#666',
                     'label': 'data(label)',
-                    'color': '#333',
+                    'color': '#fff',
                     'font-size': '12px',
                     'text-valign': 'center',
                     'text-halign': 'center',
-                    'width': '40px',
-                    'height': '40px',
+                    'width': '30px',
+                    'height': '30px',
                     'text-outline-width': 2,
-                    'text-outline-color': '#fff'
-                }
-            },
-            {
-                selector: 'node[type="core"]',
-                style: {
-                    'background-color': '#ff5722',
-                    'width': '60px',
-                    'height': '60px',
-                    'font-size': '14px'
+                    'text-outline-color': '#666'
                 }
             },
             {
@@ -66,6 +57,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const layoutSelect = document.getElementById('layout-select');
     const easingSelect = document.getElementById('easing-select');
+    const colorSelect = document.getElementById('node-color-select');
+    const sizeSelect = document.getElementById('node-size-select');
 
     function updateLayout() {
         const layoutName = layoutSelect.value;
@@ -80,6 +73,109 @@ document.addEventListener('DOMContentLoaded', function () {
 
     layoutSelect.addEventListener('change', updateLayout);
     easingSelect.addEventListener('change', updateLayout);
+
+    // Helper to generate color from string
+    function stringToColor(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+        return '#' + '00000'.substring(0, 6 - c.length) + c;
+    }
+
+    // Style update function
+    function updateNodeStyle() {
+        const colorAttr = colorSelect.value;
+        const sizeAttr = sizeSelect.value;
+
+        cy.nodes().forEach(node => {
+            const data = node.data();
+            let style = {};
+
+            // Reset to default
+            style['background-color'] = '#666';
+            style['width'] = 30;
+            style['height'] = 30;
+            style['label'] = data.label || data.id;
+            style['text-outline-color'] = '#666';
+            style['font-size'] = '12px'; // Ensure uniform font size
+
+            // Apply color
+            if (colorAttr && data[colorAttr] !== undefined) {
+                const val = data[colorAttr];
+                const color = stringToColor(String(val));
+                style['background-color'] = color;
+                style['text-outline-color'] = color;
+            }
+
+            // Apply size
+            if (sizeAttr && data[sizeAttr] !== undefined) {
+                const val = Number(data[sizeAttr]);
+                if (!isNaN(val)) {
+                    // Find min/max for this attribute
+                    let min = Infinity;
+                    let max = -Infinity;
+                    cy.nodes().forEach(n => {
+                        const v = Number(n.data(sizeAttr));
+                        if (!isNaN(v)) {
+                            if (v < min) min = v;
+                            if (v > max) max = v;
+                        }
+                    });
+
+                    // Normalize and map to 20-80px
+                    if (max === min) {
+                        style['width'] = 30;
+                        style['height'] = 30;
+                    } else {
+                        const size = 20 + ((val - min) / (max - min)) * 60;
+                        style['width'] = size;
+                        style['height'] = size;
+                    }
+                }
+            }
+
+            node.style(style);
+        });
+    }
+
+    // Bind events
+    colorSelect.onchange = updateNodeStyle;
+    sizeSelect.onchange = updateNodeStyle;
+
+    function extractAndPopulateAttributes() {
+        const nodeAttributes = new Set();
+        cy.nodes().forEach(node => {
+            const attributes = node.data();
+            Object.keys(attributes).forEach(key => {
+                if (key !== 'id' && key !== 'label' && key !== 'x' && key !== 'y') {
+                    nodeAttributes.add(key);
+                }
+            });
+        });
+
+        // Clear existing options except the first one
+        while (colorSelect.options.length > 1) colorSelect.remove(1);
+        while (sizeSelect.options.length > 1) sizeSelect.remove(1);
+
+        nodeAttributes.forEach(attr => {
+            const option1 = document.createElement('option');
+            option1.value = attr;
+            option1.text = attr;
+            colorSelect.add(option1);
+
+            const option2 = document.createElement('option');
+            option2.value = attr;
+            option2.text = attr;
+            sizeSelect.add(option2);
+        });
+    }
+
+    // Initialize with default data
+    extractAndPopulateAttributes();
+    updateNodeStyle();
+
 
     const downloadBtn = document.getElementById('download-svg');
     downloadBtn.addEventListener('click', function () {
@@ -149,6 +245,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         position: {
                             x: attributes.x || Math.random() * 800,
                             y: attributes.y || Math.random() * 600
+                        },
+                        // Set default style initially
+                        style: {
+                            'background-color': '#666',
+                            'width': 30,
+                            'height': 30,
+                            'label': attributes.label || node
                         }
                     });
                 });
@@ -170,6 +273,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Update Cytoscape
                 cy.elements().remove();
                 cy.add(elements);
+
+                // Update attributes and styles
+                extractAndPopulateAttributes();
+                updateNodeStyle();
 
                 // Apply layout if positions are not defined or to reset view
                 const layoutName = document.getElementById('layout-select').value;
