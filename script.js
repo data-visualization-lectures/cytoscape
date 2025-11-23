@@ -65,16 +65,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     const layoutSelect = document.getElementById('layout-select');
+    const easingSelect = document.getElementById('easing-select');
 
-    layoutSelect.addEventListener('change', function () {
-        const layoutName = this.value;
-        const layout = cy.layout({
+    function updateLayout() {
+        const layoutName = layoutSelect.value;
+        const easingName = easingSelect.value;
+        cy.layout({
             name: layoutName,
             animate: true,
-            animationDuration: 500
-        });
-        layout.run();
-    });
+            animationDuration: 1000,
+            animationEasing: easingName
+        }).run();
+    }
+
+    layoutSelect.addEventListener('change', updateLayout);
+    easingSelect.addEventListener('change', updateLayout);
 
     const downloadBtn = document.getElementById('download-svg');
     downloadBtn.addEventListener('click', function () {
@@ -168,7 +173,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Apply layout if positions are not defined or to reset view
                 const layoutName = document.getElementById('layout-select').value;
-                cy.layout({ name: layoutName, animate: true }).run();
+                const easingName = document.getElementById('easing-select').value;
+                cy.layout({ name: layoutName, animate: true, animationEasing: easingName }).run();
 
             } catch (error) {
                 console.error('Error parsing file:', error);
