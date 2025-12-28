@@ -25,64 +25,74 @@
 
 <body>
     <div id="controls">
-        <h1>ネットワーク可視化ツール Cytoscape</h1>
-        <div class="control-row">
-            <label for="layout-select">レイアウト:</label>
-            <select id="layout-select">
-                <option value="grid">Grid</option>
-                <option value="circle">Circle</option>
-                <option value="concentric">Concentric</option>
-                <option value="breadthfirst">Breadthfirst</option>
-                <option value="cose">Cose (Physics)</option>
-                <option value="random">Random</option>
-            </select>
-            <label for="easing-select">イージング:</label>
-            <select id="easing-select">
-                <option value="ease">Ease</option>
-                <option value="linear">Linear</option>
-                <option value="ease-in">Ease In</option>
-                <option value="ease-out">Ease Out</option>
-                <option value="ease-in-out">Ease In Out</option>
-            </select>
+        <div class="controls-header">
+            <h1>ネットワーク可視化ツール Cytoscape</h1>
+            <button id="toggle-controls-btn" aria-label="Toggle controls">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+            </button>
         </div>
-        <div class="control-row">
-            <label for="node-color-select">色:</label>
-            <select id="node-color-select">
-                <option value="">(None)</option>
-            </select>
-            <label for="node-size-select">サイズ:</label>
-            <select id="node-size-select">
-                <option value="">(None)</option>
-            </select>
-            <label for="node-label-select">ラベル:</label>
-            <select id="node-label-select">
-                <option value="">(Default)</option>
-            </select>
-        </div>
-        <div class="control-row bottom-row">
-            <label for="file-upload">データセットの読み込み:</label>
-            <input type="file" id="file-upload" accept=".gexf, .graphml">
-            <div class="sample-dataset-container">
-                <label for="sample-dataset-select">サンプル・データセット:</label>
-                <select id="sample-dataset-select">
-                    <optgroup label="Social Networks">
-                        <option value="lesmis" selected>Les Misérables</option>
-                        <option value="got">Game of Thrones</option>
-                        <option value="marvel">Marvel Universe</option>
-                        <option value="quakers">Quakers (17th Century)</option>
-                    </optgroup>
-                    <optgroup label="Scientific Networks">
-                        <option value="eurosis">EuroSiS</option>
-                        <option value="diseasome">Diseasome</option>
-                        <option value="celegans">C. Elegans</option>
-                        <option value="java">Java Dependencies</option>
-                        <option value="powergrid">Power Grid</option>
-                    </optgroup>
+        <div id="controls-body">
+            <div class="control-row">
+                <label for="layout-select">レイアウト:</label>
+                <select id="layout-select">
+                    <option value="grid">Grid</option>
+                    <option value="circle">Circle</option>
+                    <option value="concentric">Concentric</option>
+                    <option value="breadthfirst">Breadthfirst</option>
+                    <option value="cose">Cose (Physics)</option>
+                    <option value="random">Random</option>
+                </select>
+                <label for="easing-select">イージング:</label>
+                <select id="easing-select">
+                    <option value="ease">Ease</option>
+                    <option value="linear">Linear</option>
+                    <option value="ease-in">Ease In</option>
+                    <option value="ease-out">Ease Out</option>
+                    <option value="ease-in-out">Ease In Out</option>
                 </select>
             </div>
-        </div>
-        <div class="control-row bottom-row">
-            <button id="download-svg">SVG ファイルをダウンロード</button>
+            <div class="control-row">
+                <label for="node-color-select">色:</label>
+                <select id="node-color-select">
+                    <option value="">(None)</option>
+                </select>
+                <label for="node-size-select">サイズ:</label>
+                <select id="node-size-select">
+                    <option value="">(None)</option>
+                </select>
+                <label for="node-label-select">ラベル:</label>
+                <select id="node-label-select">
+                    <option value="">(Default)</option>
+                </select>
+            </div>
+            <div class="control-row bottom-row">
+                <label for="file-upload">データセットの読み込み:</label>
+                <input type="file" id="file-upload" accept=".gexf, .graphml">
+                <div class="sample-dataset-container">
+                    <label for="sample-dataset-select">サンプル・データセット:</label>
+                    <select id="sample-dataset-select">
+                        <optgroup label="Social Networks">
+                            <option value="lesmis" selected>Les Misérables</option>
+                            <option value="got">Game of Thrones</option>
+                            <option value="marvel">Marvel Universe</option>
+                            <option value="quakers">Quakers (17th Century)</option>
+                        </optgroup>
+                        <optgroup label="Scientific Networks">
+                            <option value="eurosis">EuroSiS</option>
+                            <option value="diseasome">Diseasome</option>
+                            <option value="celegans">C. Elegans</option>
+                            <option value="java">Java Dependencies</option>
+                            <option value="powergrid">Power Grid</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+            <div class="control-row bottom-row">
+                <button id="download-svg">SVG ファイルをダウンロード</button>
+            </div>
         </div>
     </div>
     <div id="cy"></div>

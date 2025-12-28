@@ -60,6 +60,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const colorSelect = document.getElementById('node-color-select');
     const sizeSelect = document.getElementById('node-size-select');
     const labelSelect = document.getElementById('node-label-select');
+    const sampleDatasetSelect = document.getElementById('sample-dataset-select');
+    const fileUpload = document.getElementById('file-upload');
 
     function updateLayout() {
         const layoutName = layoutSelect.value;
@@ -163,6 +165,11 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
 
+        // Store current selections to restore if possible
+        const currentColor = colorSelect.value;
+        const currentSize = sizeSelect.value;
+        const currentLabel = labelSelect.value;
+
         // Clear existing options except the first one
         while (colorSelect.options.length > 1) colorSelect.remove(1);
         while (sizeSelect.options.length > 1) sizeSelect.remove(1);
@@ -184,6 +191,79 @@ document.addEventListener('DOMContentLoaded', function () {
             option3.text = attr;
             labelSelect.add(option3);
         });
+
+        // Restore selections if attributes still exist, otherwise reset
+        if (nodeAttributes.has(currentColor)) colorSelect.value = currentColor;
+        if (nodeAttributes.has(currentSize)) sizeSelect.value = currentSize;
+        if (nodeAttributes.has(currentLabel)) labelSelect.value = currentLabel;
+    }
+
+    // Common function to process graph data
+    function loadGraphData(content, isGraphML) {
+        try {
+            // Parse based on format (returns a MultiGraph)
+            const graph = isGraphML
+                ? graphologyLibrary.graphml.parse(graphology.MultiGraph, content)
+                : graphologyLibrary.gexf.parse(graphology.MultiGraph, content);
+
+            const elements = [];
+
+            // Convert nodes
+            const containerWidth = cy.width();
+            const containerHeight = cy.height();
+
+            graph.forEachNode((node, attributes) => {
+                elements.push({
+                    group: 'nodes',
+                    data: {
+                        id: node,
+                        label: attributes.label || node,
+                        ...attributes
+                    },
+                    position: {
+                        x: attributes.x || (containerWidth / 2 + (Math.random() - 0.5) * containerWidth * 0.8),
+                        y: attributes.y || (containerHeight / 2 + (Math.random() - 0.5) * containerHeight * 0.8)
+                    },
+                    style: {
+                        'background-color': '#666',
+                        'width': 30,
+                        'height': 30,
+                        'label': attributes.label || node
+                    }
+                });
+            });
+
+            // Convert edges
+            graph.forEachEdge((edge, attributes, source, target) => {
+                elements.push({
+                    group: 'edges',
+                    data: {
+                        id: edge,
+                        source: source,
+                        target: target,
+                        ...attributes
+                    }
+                });
+            });
+
+            // Update Cytoscape
+            cy.elements().remove();
+            cy.add(elements);
+
+            // Update attributes and styles
+            extractAndPopulateAttributes();
+            updateNodeStyle();
+
+            // Apply layout
+            const layoutName = layoutSelect.value;
+            const easingName = easingSelect.value;
+            cy.layout({ name: layoutName, animate: true, animationEasing: easingName }).run();
+
+        } catch (error) {
+            console.error('Error parsing graph data:', error);
+            alert('Failed to parse graph data. Please check the file format and console for details.');
+            throw error; // Re-throw to handle specific UI resets in caller
+        }
     }
 
     // Initialize with default data
@@ -234,7 +314,6 @@ document.addEventListener('DOMContentLoaded', function () {
         'quakers': 'data/samples/quakers.graphml'
     };
 
-    const sampleDatasetSelect = document.getElementById('sample-dataset-select');
     sampleDatasetSelect.addEventListener('change', async function () {
         const datasetKey = this.value;
 
@@ -255,78 +334,16 @@ document.addEventListener('DOMContentLoaded', function () {
             // Detect file format based on URL extension
             const isGraphML = url.endsWith('.graphml');
 
-            try {
-                // Parse based on format (returns a MultiGraph)
-                const graph = isGraphML
-                    ? graphologyLibrary.graphml.parse(graphology.MultiGraph, content)
-                    : graphologyLibrary.gexf.parse(graphology.MultiGraph, content);
+            loadGraphData(content, isGraphML);
 
-                const elements = [];
-
-                // Convert nodes
-                const containerWidth = cy.width();
-                const containerHeight = cy.height();
-
-                graph.forEachNode((node, attributes) => {
-                    elements.push({
-                        group: 'nodes',
-                        data: {
-                            id: node,
-                            label: attributes.label || node,
-                            ...attributes
-                        },
-                        position: {
-                            x: attributes.x || (containerWidth / 2 + (Math.random() - 0.5) * containerWidth * 0.8),
-                            y: attributes.y || (containerHeight / 2 + (Math.random() - 0.5) * containerHeight * 0.8)
-                        },
-                        style: {
-                            'background-color': '#666',
-                            'width': 30,
-                            'height': 30,
-                            'label': attributes.label || node
-                        }
-                    });
-                });
-
-                // Convert edges
-                graph.forEachEdge((edge, attributes, source, target) => {
-                    elements.push({
-                        group: 'edges',
-                        data: {
-                            id: edge,
-                            source: source,
-                            target: target,
-                            ...attributes
-                        }
-                    });
-                });
-
-                // Update Cytoscape
-                cy.elements().remove();
-                cy.add(elements);
-
-                // Update attributes and styles
-                extractAndPopulateAttributes();
-                updateNodeStyle();
-
-                // Apply layout
-                const layoutName = document.getElementById('layout-select').value;
-                const easingName = document.getElementById('easing-select').value;
-                cy.layout({ name: layoutName, animate: true, animationEasing: easingName }).run();
-
-                // Re-enable dropdown
-                sampleDatasetSelect.disabled = false;
-
-            } catch (error) {
-                console.error(`Error parsing ${datasetKey} dataset:`, error);
-                alert(`Failed to parse ${datasetKey} dataset. Please try another one.`);
-                sampleDatasetSelect.value = '';
-                sampleDatasetSelect.disabled = false;
-            }
+            // Re-enable dropdown on success
+            this.disabled = false;
 
         } catch (error) {
             console.error(`Error loading ${datasetKey} dataset:`, error);
-            alert(`Failed to load ${datasetKey} dataset. Please check your internet connection.`);
+            if (!error.message.includes('Failed to parse')) { // Prevent double alert if parsing failed
+                alert(`Failed to load ${datasetKey} dataset. Please check your internet connection.`);
+            }
             this.value = '';
             this.disabled = false;
         }
@@ -338,7 +355,6 @@ document.addEventListener('DOMContentLoaded', function () {
         sampleDatasetSelect.dispatchEvent(new Event('change'));
     });
 
-    const fileUpload = document.getElementById('file-upload');
     fileUpload.addEventListener('change', function (event) {
         const file = event.target.files[0];
         if (!file) {
@@ -349,79 +365,37 @@ document.addEventListener('DOMContentLoaded', function () {
         reader.onload = function (e) {
             const content = e.target.result;
             try {
-                let graph;
+                let isGraphML = false;
                 if (file.name.endsWith('.gexf')) {
-                    // Parse GEXF using graphology
-                    graph = graphology.Graph.from(graphologyLibrary.gexf.parse(graphology.MultiGraph, content));
+                    isGraphML = false;
                 } else if (file.name.endsWith('.graphml')) {
-                    // Parse GraphML using graphology
-                    graph = graphology.Graph.from(graphologyLibrary.graphml.parse(graphology.MultiGraph, content));
+                    isGraphML = true;
                 } else {
                     alert('Unsupported file format. Please upload .gexf or .graphml files.');
                     return;
                 }
 
+                loadGraphData(content, isGraphML);
 
-                const elements = [];
-
-                // Convert nodes
-                const containerWidth = cy.width();
-                const containerHeight = cy.height();
-
-                graph.forEachNode((node, attributes) => {
-                    elements.push({
-                        group: 'nodes',
-                        data: {
-                            id: node,
-                            label: attributes.label || node,
-                            ...attributes
-                        },
-                        position: {
-                            x: attributes.x || (containerWidth / 2 + (Math.random() - 0.5) * containerWidth * 0.8),
-                            y: attributes.y || (containerHeight / 2 + (Math.random() - 0.5) * containerHeight * 0.8)
-                        },
-                        // Set default style initially
-                        style: {
-                            'background-color': '#666',
-                            'width': 30,
-                            'height': 30,
-                            'label': attributes.label || node
-                        }
-                    });
-                });
-
-                // Convert edges
-                graph.forEachEdge((edge, attributes, source, target) => {
-                    elements.push({
-                        group: 'edges',
-                        data: {
-                            id: edge,
-                            source: source,
-                            target: target,
-                            ...attributes
-                        }
-                    });
-                });
-
-
-                // Update Cytoscape
-                cy.elements().remove();
-                cy.add(elements);
-
-                // Update attributes and styles
-                extractAndPopulateAttributes();
-                updateNodeStyle();
-
-                // Apply layout if positions are not defined or to reset view
-                const layoutName = document.getElementById('layout-select').value;
-                const easingName = document.getElementById('easing-select').value;
-                cy.layout({ name: layoutName, animate: true, animationEasing: easingName }).run();
+                // Clear the input so the same file can be selected again if needed
+                fileUpload.value = '';
 
             } catch (error) {
-                console.error('Error parsing file:', error);
-                alert('Failed to parse file. Please check the console for details.');
+                console.error('Error processing uploaded file:', error);
+                // Alert already handled in loadGraphData
             }
         };
         reader.readAsText(file);
     });
+
+    // Control panel toggle
+    const toggleBtn = document.getElementById('toggle-controls-btn');
+    const controlsPanel = document.getElementById('controls');
+
+    // Check if elements exist before adding listeners to avoid errors
+    if (toggleBtn && controlsPanel) {
+        toggleBtn.addEventListener('click', function () {
+            controlsPanel.classList.toggle('collapsed');
+        });
+    }
 });

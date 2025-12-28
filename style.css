@@ -136,4 +136,63 @@ body {
     color: #333;
     font-weight: 700;
     line-height: 1.4;
+    flex-grow: 1;
+}
+
+.controls-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+#toggle-controls-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+#toggle-controls-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+#controls.collapsed {
+    width: auto;
+    padding: 10px 15px;
+}
+
+#controls.collapsed .controls-header {
+    margin-bottom: 0;
+}
+
+#controls.collapsed #controls-body {
+    display: none;
+}
+
+#controls.collapsed #toggle-controls-btn svg {
+    transform: rotate(180deg);
+}
+
+#controls-body {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+}
+
+/* Ensure file input is clickable and visible */
+#file-upload {
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    z-index: 101; /* Ensure it's above other elements */
+    position: relative;
+    max-width: 250px; /* Limit width */
 }
