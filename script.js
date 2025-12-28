@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const easingSelect = document.getElementById('easing-select');
     const colorSelect = document.getElementById('node-color-select');
     const sizeSelect = document.getElementById('node-size-select');
+    const labelSelect = document.getElementById('node-label-select');
 
     function updateLayout() {
         const layoutName = layoutSelect.value;
@@ -88,6 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateNodeStyle() {
         const colorAttr = colorSelect.value;
         const sizeAttr = sizeSelect.value;
+        const labelAttr = labelSelect.value;
 
         cy.nodes().forEach(node => {
             const data = node.data();
@@ -100,6 +102,11 @@ document.addEventListener('DOMContentLoaded', function () {
             style['label'] = data.label || data.id;
             style['text-outline-color'] = '#666';
             style['font-size'] = '12px'; // Ensure uniform font size
+
+            // Apply label
+            if (labelAttr && data[labelAttr] !== undefined) {
+                style['label'] = data[labelAttr];
+            }
 
             // Apply color
             if (colorAttr && data[colorAttr] !== undefined) {
@@ -143,6 +150,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Bind events
     colorSelect.onchange = updateNodeStyle;
     sizeSelect.onchange = updateNodeStyle;
+    labelSelect.onchange = updateNodeStyle;
 
     function extractAndPopulateAttributes() {
         const nodeAttributes = new Set();
@@ -158,6 +166,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Clear existing options except the first one
         while (colorSelect.options.length > 1) colorSelect.remove(1);
         while (sizeSelect.options.length > 1) sizeSelect.remove(1);
+        while (labelSelect.options.length > 1) labelSelect.remove(1);
 
         nodeAttributes.forEach(attr => {
             const option1 = document.createElement('option');
@@ -169,6 +178,11 @@ document.addEventListener('DOMContentLoaded', function () {
             option2.value = attr;
             option2.text = attr;
             sizeSelect.add(option2);
+
+            const option3 = document.createElement('option');
+            option3.value = attr;
+            option3.text = attr;
+            labelSelect.add(option3);
         });
     }
 

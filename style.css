@@ -55,7 +55,7 @@ body {
     font-size: 14px;
 }
 
-#layout-select, #easing-select, #node-color-select, #node-size-select {
+#layout-select, #easing-select, #node-color-select, #node-size-select, #node-label-select {
     padding: 8px;
     border-radius: 4px;
     border: 1px solid #ccc;
@@ -66,6 +66,7 @@ body {
     cursor: pointer;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
+    min-width: 120px; /* Ensure consistent width */
 }
 
 #layout-select:hover {
