@@ -575,7 +575,12 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 await getAuthHeaders();
                 saveModal.classList.remove('hidden');
-                // Pre-fill name if we have one (could be implemented if we stored name)
+
+                // Set default name to YYYY-MM-DD if empty or if needed
+                if (!saveProjectNameInput.value) {
+                    const today = new Date().toISOString().split('T')[0];
+                    saveProjectNameInput.value = today;
+                }
             } catch (e) {
                 showToast("Please log in to save projects.", "error");
             }
