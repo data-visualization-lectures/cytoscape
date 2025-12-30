@@ -543,6 +543,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let currentProjectId = null; // Track currently loaded project ID for updates
 
+    // --- Toast Notification Helper ---
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+
+        container.appendChild(toast);
+
+        // Trigger reflow for animation
+        requestAnimationFrame(() => {
+            toast.classList.add('visible');
+        });
+
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('visible');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+
     // --- Save Flow ---
     if (serverSaveBtn) {
         serverSaveBtn.addEventListener('click', async () => {
@@ -552,7 +577,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 saveModal.classList.remove('hidden');
                 // Pre-fill name if we have one (could be implemented if we stored name)
             } catch (e) {
-                alert("Please log in to save projects.");
+                showToast("Please log in to save projects.", "error");
             }
         });
     }
@@ -567,7 +592,7 @@ document.addEventListener('DOMContentLoaded', function () {
         confirmSaveBtn.addEventListener('click', async () => {
             const name = saveProjectNameInput.value.trim();
             if (!name) {
-                alert("Please enter a project name.");
+                showToast("Please enter a project name.", "error");
                 return;
             }
 
@@ -589,12 +614,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     currentProjectId = result.project.id;
                 }
 
-                alert("Project saved successfully!");
+                showToast("Project saved successfully!", "success");
                 saveModal.classList.add('hidden');
 
             } catch (error) {
                 console.error("Save error:", error);
-                alert("Failed to save project. " + error.message);
+                showToast("Failed to save project. " + error.message, "error");
             } finally {
                 confirmSaveBtn.textContent = "Save";
                 confirmSaveBtn.disabled = false;
@@ -611,7 +636,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 loadModal.classList.remove('hidden');
                 refreshProjectList();
             } catch (e) {
-                alert("Please log in to load projects.");
+                showToast("Please log in to load projects.", "error");
             }
         });
     }
@@ -673,7 +698,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         saveProjectNameInput.value = p.name; // Update name input for subsequent saves
                     } catch (err) {
                         console.error(err);
-                        alert("Failed to load project.");
+                        showToast("Failed to load project.", "error");
                     }
                 });
 
@@ -686,8 +711,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             await API.deleteProject(p.id);
                             item.remove();
                             if (currentProjectId === p.id) currentProjectId = null;
+                            showToast("Project deleted.", "success");
                         } catch (err) {
-                            alert("Failed to delete project.");
+                            showToast("Failed to delete project.", "error");
                         }
                     }
                 });
@@ -735,7 +761,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data) {
                 cy.json(data);
                 extractAndPopulateAttributes();
-                alert("Project loaded!");
+                showToast("Project loaded!", "success");
             }
 
         } catch (e) {
