@@ -403,73 +403,13 @@ document.addEventListener('DOMContentLoaded', function () {
     // Server Storage Implementation (Supabase)
     // ==========================================
 
-    // Configuration (Must match dataviz-auth-client.js)
-    const SUPABASE_URL = "https://vebhoeiltxspsurqoxvl.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlYmhvZWlsdHhzcHN1cnFveHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAyMjI2MTIsImV4cCI6MjA0NTc5ODYxMn0.sV-Xf6wP_m46D_q-XN0oZfK9NogDqD9xV5sS-n6J8c4";
+    // Use shared Supabase client from dataviz-auth-client.js
     const API_BASE_URL = "https://api.dataviz.jp";
-    const AUTH_COOKIE_NAME = "sb-dataviz-auth-token";
-    const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
-
-    // Cookie Helper (Shared Logic)
-    const COOKIE_DOMAIN = (() => {
-        const hostname = window.location.hostname;
-        if (hostname === "localhost" || hostname === "127.0.0.1" || hostname.match(/^(\d{1,3}\.){3}\d{1,3}$/)) {
-            return null;
-        }
-        return ".dataviz.jp";
-    })();
-
-    const cookieStorage = {
-        getItem: (key) => {
-            const cookies = document.cookie.split(";").map((c) => c.trim()).filter(Boolean);
-            for (const c of cookies) {
-                const [k, ...rest] = c.split("=");
-                if (k === key) {
-                    const rawVal = decodeURIComponent(rest.join("="));
-                    try { return JSON.parse(rawVal); } catch (e) { }
-                    try {
-                        let toDecode = rawVal.startsWith('base64-') ? rawVal.slice(7) : rawVal;
-                        const base64Standard = toDecode.replace(/-/g, '+').replace(/_/g, '/');
-                        return JSON.parse(atob(base64Standard));
-                    } catch (e) { return null; }
-                }
-            }
-            return null;
-        },
-        setItem: (key, value) => {
-            let encoded;
-            try { encoded = btoa(value); } catch (e) { return; }
-            let cookieStr = `${key}=${encoded}; Max-Age=${COOKIE_MAX_AGE}; Path=/; SameSite=None; Secure`;
-            if (COOKIE_DOMAIN) cookieStr += `; Domain=${COOKIE_DOMAIN}`;
-            document.cookie = cookieStr;
-        },
-        removeItem: (key) => {
-            let cookieStr = `${key}=; Max-Age=0; Path=/; SameSite=None; Secure`;
-            if (COOKIE_DOMAIN) cookieStr += `; Domain=${COOKIE_DOMAIN}`;
-            document.cookie = cookieStr;
-        },
-    };
-
-    // Initialize Supabase Client
-    let supabaseClient = null;
-    if (window.supabase) {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-            auth: {
-                storage: cookieStorage,
-                storageKey: AUTH_COOKIE_NAME,
-                persistSession: true,
-                autoRefreshToken: true,
-                detectSessionInUrl: true,
-            },
-        });
-    } else {
-        console.error("Supabase library not found!");
-    }
 
     // API Functions
     async function getAuthHeaders() {
-        if (!supabaseClient) throw new Error("Supabase client not initialized");
-        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!window.datavizSupabase) throw new Error("Supabase client not initialized (Global)");
+        const { data: { session } } = await window.datavizSupabase.auth.getSession();
         if (!session) throw new Error("Not authenticated");
         return {
             'Authorization': `Bearer ${session.access_token}`,
