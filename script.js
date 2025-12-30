@@ -398,4 +398,365 @@ document.addEventListener('DOMContentLoaded', function () {
             controlsPanel.classList.toggle('collapsed');
         });
     }
+
+    // ==========================================
+    // Server Storage Implementation (Supabase)
+    // ==========================================
+
+    // Configuration (Must match dataviz-auth-client.js)
+    const SUPABASE_URL = "https://vebhoeiltxspsurqoxvl.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlYmhvZWlsdHhzcHN1cnFveHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAyMjI2MTIsImV4cCI6MjA0NTc5ODYxMn0.sV-Xf6wP_m46D_q-XN0oZfK9NogDqD9xV5sS-n6J8c4";
+    const API_BASE_URL = "https://api.dataviz.jp";
+    const AUTH_COOKIE_NAME = "sb-dataviz-auth-token";
+    const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+    // Cookie Helper (Shared Logic)
+    const COOKIE_DOMAIN = (() => {
+        const hostname = window.location.hostname;
+        if (hostname === "localhost" || hostname === "127.0.0.1" || hostname.match(/^(\d{1,3}\.){3}\d{1,3}$/)) {
+            return null;
+        }
+        return ".dataviz.jp";
+    })();
+
+    const cookieStorage = {
+        getItem: (key) => {
+            const cookies = document.cookie.split(";").map((c) => c.trim()).filter(Boolean);
+            for (const c of cookies) {
+                const [k, ...rest] = c.split("=");
+                if (k === key) {
+                    const rawVal = decodeURIComponent(rest.join("="));
+                    try { return JSON.parse(rawVal); } catch (e) { }
+                    try {
+                        let toDecode = rawVal.startsWith('base64-') ? rawVal.slice(7) : rawVal;
+                        const base64Standard = toDecode.replace(/-/g, '+').replace(/_/g, '/');
+                        return JSON.parse(atob(base64Standard));
+                    } catch (e) { return null; }
+                }
+            }
+            return null;
+        },
+        setItem: (key, value) => {
+            let encoded;
+            try { encoded = btoa(value); } catch (e) { return; }
+            let cookieStr = `${key}=${encoded}; Max-Age=${COOKIE_MAX_AGE}; Path=/; SameSite=None; Secure`;
+            if (COOKIE_DOMAIN) cookieStr += `; Domain=${COOKIE_DOMAIN}`;
+            document.cookie = cookieStr;
+        },
+        removeItem: (key) => {
+            let cookieStr = `${key}=; Max-Age=0; Path=/; SameSite=None; Secure`;
+            if (COOKIE_DOMAIN) cookieStr += `; Domain=${COOKIE_DOMAIN}`;
+            document.cookie = cookieStr;
+        },
+    };
+
+    // Initialize Supabase Client
+    let supabaseClient = null;
+    if (window.supabase) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                storage: cookieStorage,
+                storageKey: AUTH_COOKIE_NAME,
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true,
+            },
+        });
+    } else {
+        console.error("Supabase library not found!");
+    }
+
+    // API Functions
+    async function getAuthHeaders() {
+        if (!supabaseClient) throw new Error("Supabase client not initialized");
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) throw new Error("Not authenticated");
+        return {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+        };
+    }
+
+    const API = {
+        async fetchProjects() {
+            const headers = await getAuthHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/projects?app=cytoscape`, { headers });
+            if (!response.ok) throw new Error("Failed to fetch projects");
+            return await response.json();
+        },
+
+        async saveProject(name, data, thumbnailBase64, id = null) {
+            const headers = await getAuthHeaders();
+            const payload = {
+                name: name,
+                app_name: 'cytoscape',
+                data: data,
+                thumbnail: thumbnailBase64
+            };
+
+            let url = `${API_BASE_URL}/api/projects`;
+            let method = 'POST';
+
+            if (id) {
+                url = `${API_BASE_URL}/api/projects/${id}`;
+                method = 'PUT';
+            }
+
+            const response = await fetch(url, {
+                method: method,
+                headers: headers,
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error("Failed to save project");
+            return await response.json();
+        },
+
+        async loadProject(id) {
+            const headers = await getAuthHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, { headers });
+            if (!response.ok) throw new Error("Failed to load project data");
+            return await response.json();
+        },
+
+        async deleteProject(id) {
+            const headers = await getAuthHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
+                method: 'DELETE',
+                headers: headers
+            });
+            if (!response.ok) throw new Error("Failed to delete project");
+            return await response.json();
+        }
+    };
+
+    // UI & Logic
+    const serverSaveBtn = document.getElementById('server-save-btn');
+    const serverLoadBtn = document.getElementById('server-load-btn');
+    const saveModal = document.getElementById('save-modal');
+    const loadModal = document.getElementById('load-modal');
+    const confirmSaveBtn = document.getElementById('confirm-save-btn');
+    const cancelSaveBtn = document.getElementById('cancel-save-btn');
+    const cancelLoadBtn = document.getElementById('cancel-load-btn');
+    const saveProjectNameInput = document.getElementById('save-project-name');
+    const projectListContainer = document.getElementById('project-list');
+
+    let currentProjectId = null; // Track currently loaded project ID for updates
+
+    // --- Save Flow ---
+    if (serverSaveBtn) {
+        serverSaveBtn.addEventListener('click', async () => {
+            // Check auth first
+            try {
+                await getAuthHeaders();
+                saveModal.classList.remove('hidden');
+                // Pre-fill name if we have one (could be implemented if we stored name)
+            } catch (e) {
+                alert("Please log in to save projects.");
+            }
+        });
+    }
+
+    if (cancelSaveBtn) {
+        cancelSaveBtn.addEventListener('click', () => {
+            saveModal.classList.add('hidden');
+        });
+    }
+
+    if (confirmSaveBtn) {
+        confirmSaveBtn.addEventListener('click', async () => {
+            const name = saveProjectNameInput.value.trim();
+            if (!name) {
+                alert("Please enter a project name.");
+                return;
+            }
+
+            confirmSaveBtn.textContent = "Saving...";
+            confirmSaveBtn.disabled = true;
+
+            try {
+                // 1. Generate Thumbnail
+                const pngContent = cy.png({ output: 'base64uri', full: true, scale: 0.5, maxWidth: 600 });
+
+                // 2. Serialize Data
+                const data = cy.json();
+
+                // 3. Save API Call
+                const result = await API.saveProject(name, data, pngContent, currentProjectId);
+
+                // 4. Update state
+                if (result.project && result.project.id) {
+                    currentProjectId = result.project.id;
+                }
+
+                alert("Project saved successfully!");
+                saveModal.classList.add('hidden');
+
+            } catch (error) {
+                console.error("Save error:", error);
+                alert("Failed to save project. " + error.message);
+            } finally {
+                confirmSaveBtn.textContent = "Save";
+                confirmSaveBtn.disabled = false;
+            }
+        });
+    }
+
+    // --- Load Flow ---
+    if (serverLoadBtn) {
+        serverLoadBtn.addEventListener('click', async () => {
+            try {
+                // Check auth
+                await getAuthHeaders();
+                loadModal.classList.remove('hidden');
+                refreshProjectList();
+            } catch (e) {
+                alert("Please log in to load projects.");
+            }
+        });
+    }
+
+    if (cancelLoadBtn) {
+        cancelLoadBtn.addEventListener('click', () => {
+            loadModal.classList.add('hidden');
+        });
+    }
+
+    async function refreshProjectList() {
+        projectListContainer.innerHTML = '<div style="text-align:center; padding:20px;">Loading projects...</div>';
+
+        try {
+            const data = await API.fetchProjects();
+            const projects = data.projects || [];
+
+            projectListContainer.innerHTML = '';
+
+            if (projects.length === 0) {
+                projectListContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">No saved projects found.</div>';
+                return;
+            }
+
+            projects.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'project-item';
+
+                // Initial creation date formatting
+                const dateStr = new Date(p.updated_at || p.created_at).toLocaleString();
+
+                // Thumbnail handling
+                let imgHtml = '';
+                if (p.thumbnail_path) {
+                    const thumbUrl = `${API_BASE_URL}/api/projects/${p.id}/thumbnail`;
+                    item.dataset.thumbUrl = thumbUrl;
+                    imgHtml = `<div class="project-thumbnail" style="display:flex;align-items:center;justify-content:center;font-size:10px;color:#888;">Checking...</div>`;
+                } else {
+                    imgHtml = `<div class="project-thumbnail" style="background:#eee;"></div>`;
+                }
+
+                item.innerHTML = `
+                    ${imgHtml}
+                    <div class="project-info">
+                        <span class="project-name">${p.name}</span>
+                        <span class="project-date">${dateStr}</span>
+                    </div>
+                    <button class="delete-project-btn" title="Delete">×</button>
+                `;
+
+                // Load Action
+                item.addEventListener('click', async (e) => {
+                    if (e.target.classList.contains('delete-project-btn')) return; // Ignore delete click
+
+                    loadModal.classList.add('hidden');
+                    try {
+                        await loadProjectToGraph(p.id);
+                        currentProjectId = p.id;
+                        saveProjectNameInput.value = p.name; // Update name input for subsequent saves
+                    } catch (err) {
+                        console.error(err);
+                        alert("Failed to load project.");
+                    }
+                });
+
+                // Delete Action
+                const delBtn = item.querySelector('.delete-project-btn');
+                delBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if (confirm(`Are you sure you want to delete "${p.name}"?`)) {
+                        try {
+                            await API.deleteProject(p.id);
+                            item.remove();
+                            if (currentProjectId === p.id) currentProjectId = null;
+                        } catch (err) {
+                            alert("Failed to delete project.");
+                        }
+                    }
+                });
+
+                projectListContainer.appendChild(item);
+
+                // Lazy load thumbnail
+                if (p.thumbnail_path) {
+                    loadThumbnailBlob(p.id, item.querySelector('.project-thumbnail'));
+                }
+            });
+
+        } catch (error) {
+            console.error("List refresh error:", error);
+            projectListContainer.innerHTML = '<div style="text-align:center; padding:20px; color:red;">Failed to load project list.</div>';
+        }
+    }
+
+    async function loadThumbnailBlob(projectId, imgContainer) {
+        try {
+            const headers = await getAuthHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/thumbnail`, { headers });
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                imgContainer.innerHTML = '';
+                imgContainer.style.backgroundImage = `url(${url})`;
+                imgContainer.style.backgroundSize = 'cover';
+                imgContainer.style.backgroundPosition = 'center';
+            } else {
+                imgContainer.textContent = 'No Img';
+            }
+        } catch (e) {
+            imgContainer.textContent = 'Err';
+        }
+    }
+
+    async function loadProjectToGraph(id) {
+        // Show loading indicator
+        const originalText = serverLoadBtn ? serverLoadBtn.textContent : '';
+        if (serverLoadBtn) serverLoadBtn.textContent = "Loading...";
+
+        try {
+            const data = await API.loadProject(id);
+            if (data) {
+                cy.json(data);
+                extractAndPopulateAttributes();
+                alert("Project loaded!");
+            }
+
+        } catch (e) {
+            throw e;
+        } finally {
+            if (serverLoadBtn) serverLoadBtn.textContent = originalText || "Load from Server";
+        }
+    }
+
+    // --- URL Parameter Auto-Load ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlProjectId = urlParams.get('project_id');
+    if (urlProjectId) {
+        setTimeout(async () => {
+            try {
+                await loadProjectToGraph(urlProjectId);
+                currentProjectId = urlProjectId;
+            } catch (e) {
+                console.log("Auto-load failed (likely auth or invalid ID):", e);
+            }
+        }, 1000);
+    }
+
 });

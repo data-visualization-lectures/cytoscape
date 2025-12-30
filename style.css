@@ -196,3 +196,159 @@ body {
     position: relative;
     max-width: 250px; /* Limit width */
 }
+/* Modals */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.2s;
+}
+
+.modal.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 300px;
+    max-width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.modal-content.large-modal {
+    width: 500px;
+    height: 80vh; 
+}
+
+.modal-content h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.modal-content input[type="text"] {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.primary-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.primary-btn:hover {
+    background-color: #0056b3;
+}
+
+.secondary-btn {
+    background-color: #e0e0e0;
+    color: #333;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.secondary-btn:hover {
+    background-color: #d0d0d0;
+}
+
+/* Project List in Load Modal */
+.project-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.project-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.project-item:hover {
+    background-color: #f9f9f9;
+}
+
+.project-thumbnail {
+    width: 60px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 2px;
+    background-color: #ddd;
+}
+
+.project-info {
+    flex-grow: 1;
+}
+
+.project-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    display: block;
+}
+
+.project-date {
+    font-size: 12px;
+    color: #888;
+}
+
+.delete-project-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    padding: 5px;
+    font-size: 18px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.delete-project-btn:hover {
+    opacity: 1;
+}
+
+/* Server buttons in controls */
+#server-save-btn, #server-load-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+}
