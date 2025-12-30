@@ -145,6 +145,8 @@ npx http-server -p 8001
 
 ブラウザで `http://localhost:8001` を開いてください。
 
+http://localhost:8001/?auth_debug
+
 ### 新しいデータセットの追加
 
 1. GEXF/GraphMLファイルを `data/samples/` に配置
