@@ -485,6 +485,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Toast Notification Helper ---
     function showToast(message, type = 'info') {
+        const toolHeader = document.querySelector('dataviz-tool-header');
+        if (toolHeader && toolHeader.showMessage) {
+            toolHeader.showMessage(message, type, 3000);
+            return;
+        }
+
         const container = document.getElementById('toast-container');
         if (!container) return;
 
@@ -729,5 +735,58 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }, 1000);
     }
+
+    // --- Dataviz Tool Header Integration ---
+    console.log('Waiting for dataviz-tool-header...');
+    customElements.whenDefined('dataviz-tool-header').then(() => {
+        console.log('dataviz-tool-header defined.');
+        const toolHeader = document.querySelector('dataviz-tool-header');
+        console.log('Found toolHeader:', toolHeader);
+        if (toolHeader) {
+            // Trigger hidden buttons
+            const handleSave = () => { if (serverSaveBtn) serverSaveBtn.click(); };
+            const handleLoad = () => { if (serverLoadBtn) serverLoadBtn.click(); };
+            const handleFileLoad = () => { if (fileUpload) fileUpload.click(); };
+            const loadSample = (key) => {
+                if (sampleDatasetSelect) {
+                    sampleDatasetSelect.value = key;
+                    sampleDatasetSelect.dispatchEvent(new Event('change'));
+                }
+            };
+
+            console.log('Calling setConfig...');
+            toolHeader.setConfig({
+                logo: {
+                    type: 'text',
+                    text: 'Cytoscape Network Viz',
+                    textClass: 'font-bold text-lg text-white'
+                },
+                backgroundColor: '#2c3e50',
+                buttons: [
+                    { label: 'データファイルの読込', action: handleFileLoad },
+                    {
+                        label: 'サンプルデータの読込',
+                        type: 'dropdown',
+                        items: [
+                            { label: 'Les Misérables', action: () => loadSample('lesmis') },
+                            { label: 'Game of Thrones', action: () => loadSample('got') },
+                            { label: 'Marvel Universe', action: () => loadSample('marvel') },
+                            { label: 'Quakers', action: () => loadSample('quakers') },
+                            { label: 'EuroSiS', action: () => loadSample('eurosis') },
+                            { label: 'Diseasome', action: () => loadSample('diseasome') },
+                            { label: 'C. Elegans', action: () => loadSample('celegans') },
+                            { label: 'Java Dependencies', action: () => loadSample('java') },
+                            { label: 'Power Grid', action: () => loadSample('powergrid') }
+                        ]
+                    },
+                    { label: 'プロジェクトの読込', action: handleLoad },
+                    { label: 'プロジェクトの保存', action: handleSave }
+                ]
+            });
+            console.log('setConfig called.');
+        } else {
+            console.error('dataviz-tool-header element not found in DOM.');
+        }
+    });
 
 });

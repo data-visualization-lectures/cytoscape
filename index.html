@@ -9,8 +9,12 @@
     <script src="https://unpkg.com/cytoscape-svg@0.4.0/cytoscape-svg.js"></script>
     <script src="https://unpkg.com/graphology@0.25.4/dist/graphology.umd.js"></script>
     <script src="https://unpkg.com/graphology-library@0.8.0/dist/graphology-library.min.js"></script>
+    <script>
+        window.DATAVIZ_HEADER_CONFIG = { mode: 'public' };
+    </script>
     <script src="https://auth.dataviz.jp/lib/supabase.js"></script>
     <script src="https://auth.dataviz.jp/lib/dataviz-auth-client.js"></script>
+    <script src="https://auth.dataviz.jp/lib/dataviz-tool-header.js" defer></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <!-- Google tag (gtag.js) -->
@@ -24,7 +28,7 @@
 </script>
 
 <body>
-</body>
+<dataviz-tool-header></dataviz-tool-header>
 <div id="controls">
     <div class="controls-header">
         <h1>ネットワーク可視化ツール Cytoscape</h1>
@@ -69,34 +73,36 @@
                 <option value="">(Default)</option>
             </select>
         </div>
-        <div class="control-row bottom-row">
-            <label for="file-upload">データセットの読み込み:</label>
-            <input type="file" id="file-upload" accept=".gexf, .graphml">
-            <div class="sample-dataset-container">
-                <label for="sample-dataset-select">サンプル・データセット:</label>
-                <select id="sample-dataset-select">
-                    <optgroup label="Social Networks">
-                        <option value="lesmis" selected>Les Misérables</option>
-                        <option value="got">Game of Thrones</option>
-                        <option value="marvel">Marvel Universe</option>
-                        <option value="quakers">Quakers (17th Century)</option>
-                    </optgroup>
-                    <optgroup label="Scientific Networks">
-                        <option value="eurosis">EuroSiS</option>
-                        <option value="diseasome">Diseasome</option>
-                        <option value="celegans">C. Elegans</option>
-                        <option value="java">Java Dependencies</option>
-                        <option value="powergrid">Power Grid</option>
-                    </optgroup>
-                </select>
-            </div>
+        
+        <!-- Hidden inputs triggered by tool header -->
+        <input type="file" id="file-upload" accept=".gexf, .graphml" style="display: none;">
+        
+        <div class="sample-dataset-container" style="display: none;">
+            <label for="sample-dataset-select">サンプル・データセット:</label>
+            <select id="sample-dataset-select">
+                <optgroup label="Social Networks">
+                    <option value="lesmis" selected>Les Misérables</option>
+                    <option value="got">Game of Thrones</option>
+                    <option value="marvel">Marvel Universe</option>
+                    <option value="quakers">Quakers (17th Century)</option>
+                </optgroup>
+                <optgroup label="Scientific Networks">
+                    <option value="eurosis">EuroSiS</option>
+                    <option value="diseasome">Diseasome</option>
+                    <option value="celegans">C. Elegans</option>
+                    <option value="java">Java Dependencies</option>
+                    <option value="powergrid">Power Grid</option>
+                </optgroup>
+            </select>
         </div>
-        <!-- Server Storage Section -->
+
+        <div class="control-row bottom-row" style="display: none;">
+            <button id="server-save-btn">Server Save</button>
+            <button id="server-load-btn">Server Load</button>
+        </div>
+        
         <div class="control-row bottom-row">
-            <label>サーバー保存:</label>
-            <button id="server-save-btn" class="primary-btn">サーバへ保存</button>
-            <button id="server-load-btn" class="secondary-btn">サーバから読込</button>
-            <button id="download-svg" style="margin-left: auto;">SVG ファイルをダウンロード</button>
+             <button id="download-svg" style="margin-left: auto; width: 100%;">SVG ファイルをダウンロード</button>
         </div>
     </div>
 </div>
@@ -126,10 +132,7 @@
     </div>
 </div>
 
-<!-- Toast Notification Container -->
-<div id="toast-container"></div>
-
-<script src="script.js"></script>
+<script src="script.js" type="module"></script>
 </body>
 
 </html>
