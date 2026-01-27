@@ -763,10 +763,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 backgroundColor: '#2c3e50',
                 buttons: [
-                    { label: 'データファイルの読込', action: handleFileLoad },
+                    {
+                        label: 'データファイルの読込',
+                        action: handleFileLoad,
+                        align: 'left'
+                    },
                     {
                         label: 'サンプルデータの読込',
                         type: 'dropdown',
+                        align: 'left',
                         items: [
                             { label: 'Les Misérables', action: () => loadSample('lesmis') },
                             { label: 'Game of Thrones', action: () => loadSample('got') },
@@ -779,8 +784,23 @@ document.addEventListener('DOMContentLoaded', function () {
                             { label: 'Power Grid', action: () => loadSample('powergrid') }
                         ]
                     },
-                    { label: 'プロジェクトの読込', action: handleLoad },
-                    { label: 'プロジェクトの保存', action: handleSave }
+                    {
+                        label: 'プロジェクトの読込',
+                        action: handleLoad,
+                        align: 'right'
+                    },
+                    {
+                        label: 'プロジェクトの保存',
+                        action: handleSave,
+                        align: 'right'
+                    },
+                    {
+                        label: 'ヘルプ',
+                        type: 'link',
+                        href: '/tutorials/cytoscape/',
+                        target: '_blank',
+                        align: 'right'
+                    }
                 ]
             });
             console.log('setConfig called.');
