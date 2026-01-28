@@ -789,13 +789,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         label: 'エクスポート',
                         action: downloadSVG,
                         align: 'right'
-                    },
-                    {
-                        label: 'ヘルプ',
-                        type: 'link',
-                        href: '/tutorials/cytoscape/',
-                        target: '_blank',
-                        align: 'right'
                     }
                 ]
             });
