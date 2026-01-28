@@ -213,7 +213,8 @@ dataviz-tool-header {
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    padding-top: 70px;
     z-index: 1000;
     opacity: 1;
     transition: opacity 0.2s;
