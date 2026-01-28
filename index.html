@@ -28,18 +28,8 @@
 </script>
 
 <body>
-<dataviz-tool-header></dataviz-tool-header>
-<div id="controls">
-    <div class="controls-header">
-        <h1>ネットワーク可視化ツール Cytoscape</h1>
-        <button id="toggle-controls-btn" aria-label="Toggle controls">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="18 15 12 9 6 15"></polyline>
-            </svg>
-        </button>
-    </div>
-    <div id="controls-body">
+    <dataviz-tool-header></dataviz-tool-header>
+    <div id="controls">
         <div class="control-row">
             <label for="layout-select">レイアウト:</label>
             <select id="layout-select">
@@ -58,8 +48,6 @@
                 <option value="ease-out">Ease Out</option>
                 <option value="ease-in-out">Ease In Out</option>
             </select>
-        </div>
-        <div class="control-row">
             <label for="node-color-select">色:</label>
             <select id="node-color-select">
                 <option value="">(None)</option>
@@ -73,10 +61,10 @@
                 <option value="">(Default)</option>
             </select>
         </div>
-        
+
         <!-- Hidden inputs triggered by tool header -->
         <input type="file" id="file-upload" accept=".gexf, .graphml" style="display: none;">
-        
+
         <div class="sample-dataset-container" style="display: none;">
             <label for="sample-dataset-select">サンプル・データセット:</label>
             <select id="sample-dataset-select">
@@ -100,39 +88,34 @@
             <button id="server-save-btn">Server Save</button>
             <button id="server-load-btn">Server Load</button>
         </div>
-        
-        <div class="control-row bottom-row">
-             <button id="download-svg" style="margin-left: auto; width: 100%;">SVG ファイルをダウンロード</button>
+    </div>
+    <div id="cy"></div>
+
+    <!-- Modals -->
+    <div id="save-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Save Project</h2>
+            <input type="text" id="save-project-name" placeholder="Project Name">
+            <div class="modal-actions">
+                <button id="confirm-save-btn" class="primary-btn">Save</button>
+                <button id="cancel-save-btn" class="secondary-btn">Cancel</button>
+            </div>
         </div>
     </div>
-</div>
-<div id="cy"></div>
 
-<!-- Modals -->
-<div id="save-modal" class="modal hidden">
-    <div class="modal-content">
-        <h2>Save Project</h2>
-        <input type="text" id="save-project-name" placeholder="Project Name">
-        <div class="modal-actions">
-            <button id="confirm-save-btn" class="primary-btn">Save</button>
-            <button id="cancel-save-btn" class="secondary-btn">Cancel</button>
+    <div id="load-modal" class="modal hidden">
+        <div class="modal-content large-modal">
+            <h2>Load Project</h2>
+            <div id="project-list" class="project-list">
+                <!-- Projects will be injected here -->
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-load-btn" class="secondary-btn">Close</button>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="load-modal" class="modal hidden">
-    <div class="modal-content large-modal">
-        <h2>Load Project</h2>
-        <div id="project-list" class="project-list">
-            <!-- Projects will be injected here -->
-        </div>
-        <div class="modal-actions">
-            <button id="cancel-load-btn" class="secondary-btn">Close</button>
-        </div>
-    </div>
-</div>
-
-<script src="script.js" type="module"></script>
+    <script src="script.js" type="module"></script>
 </body>
 
 </html>

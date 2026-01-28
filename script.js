@@ -271,8 +271,8 @@ document.addEventListener('DOMContentLoaded', function () {
     updateNodeStyle();
 
 
-    const downloadBtn = document.getElementById('download-svg');
-    downloadBtn.addEventListener('click', function () {
+    // SVG Export Function
+    function downloadSVG() {
         const svgContent = cy.svg({ scale: 1, full: true });
         const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
 
@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
-    });
+    }
 
     // Sample datasets (local GEXF and GraphML files)
     const sampleDatasets = {
@@ -388,16 +388,7 @@ document.addEventListener('DOMContentLoaded', function () {
         reader.readAsText(file);
     });
 
-    // Control panel toggle
-    const toggleBtn = document.getElementById('toggle-controls-btn');
-    const controlsPanel = document.getElementById('controls');
 
-    // Check if elements exist before adding listeners to avoid errors
-    if (toggleBtn && controlsPanel) {
-        toggleBtn.addEventListener('click', function () {
-            controlsPanel.classList.toggle('collapsed');
-        });
-    }
 
     // ==========================================
     // Server Storage Implementation (Supabase)
@@ -792,6 +783,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     {
                         label: 'プロジェクトの保存',
                         action: handleSave,
+                        align: 'right'
+                    },
+                    {
+                        label: 'エクスポート',
+                        action: downloadSVG,
                         align: 'right'
                     },
                     {
