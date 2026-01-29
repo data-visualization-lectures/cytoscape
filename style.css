@@ -6,10 +6,7 @@ body {
     background-color: #f4f4f9;
 }
 
-dataviz-tool-header {
-    display: block;
-    margin-top: 48px;
-}
+
 
 #cy {
     width: 100vw;
