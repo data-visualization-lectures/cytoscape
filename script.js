@@ -1,3 +1,76 @@
+// i18next initialization
+i18next.init({
+    lng: navigator.language.startsWith('ja') ? 'ja' : 'en',
+    fallbackLng: 'en',
+    resources: {
+        ja: {
+            translation: {
+                pageTitle: 'Cytoscape Network Visualization',
+                layoutLabel: 'レイアウト:',
+                easingLabel: 'イージング:',
+                colorLabel: '色:',
+                sizeLabel: 'サイズ:',
+                labelLabel: 'ラベル:',
+                sampleLabel: 'サンプル・データセット:',
+                parseError: 'Failed to parse graph data',
+                uploadError: 'Unsupported file format. Please upload .gexf or .graphml files.',
+                loadError: 'Failed to load dataset. Please check your internet connection.',
+                deleteConfirm: 'Are you sure you want to delete "{name}"?',
+                loginRequired: 'Please log in to {action}.',
+                saveSuccess: 'Project saved successfully!',
+                loadSuccess: 'Project loaded!',
+                deleteSuccess: 'Project deleted.',
+                loginToSave: 'Please log in to save projects.',
+                loginToLoad: 'Please log in to load projects.',
+                enterProjectName: 'Please enter a project name.',
+                saveFailed: 'Failed to save project.',
+                loadFailed: 'Failed to load project.',
+                deleteFailed: 'Failed to delete project.',
+                noProjects: 'No saved projects found.'
+            }
+        },
+        en: {
+            translation: {
+                pageTitle: 'Cytoscape Network Visualization',
+                layoutLabel: 'Layout:',
+                easingLabel: 'Easing:',
+                colorLabel: 'Color:',
+                sizeLabel: 'Size:',
+                labelLabel: 'Label:',
+                sampleLabel: 'Sample Dataset:',
+                parseError: 'Failed to parse graph data',
+                uploadError: 'Unsupported file format. Please upload .gexf or .graphml files.',
+                loadError: 'Failed to load dataset. Please check your internet connection.',
+                deleteConfirm: 'Are you sure you want to delete "{name}"?',
+                loginRequired: 'Please log in to {action}.',
+                saveSuccess: 'Project saved successfully!',
+                loadSuccess: 'Project loaded!',
+                deleteSuccess: 'Project deleted.',
+                loginToSave: 'Please log in to save projects.',
+                loginToLoad: 'Please log in to load projects.',
+                enterProjectName: 'Please enter a project name.',
+                saveFailed: 'Failed to save project.',
+                loadFailed: 'Failed to load project.',
+                deleteFailed: 'Failed to delete project.',
+                noProjects: 'No saved projects found.'
+            }
+        }
+    }
+}, function() {
+    initializeUI();
+});
+
+function initializeUI() {
+    document.getElementById('pageTitle').textContent = i18next.t('pageTitle');
+    document.getElementById('layoutLabel').textContent = i18next.t('layoutLabel');
+    document.getElementById('easingLabel').textContent = i18next.t('easingLabel');
+    document.getElementById('colorLabel').textContent = i18next.t('colorLabel');
+    document.getElementById('sizeLabel').textContent = i18next.t('sizeLabel');
+    document.getElementById('labelLabel').textContent = i18next.t('labelLabel');
+    document.getElementById('sampleLabel').textContent = i18next.t('sampleLabel');
+}
+
+
 document.addEventListener('DOMContentLoaded', function () {
     const cy = cytoscape({
         container: document.getElementById('cy'),
@@ -261,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } catch (error) {
             console.error('Error parsing graph data:', error);
-            alert('Failed to parse graph data. Please check the file format and console for details.');
+            alert(i18next.t('parseError') + '. Please check the file format and console for details.');
             throw error; // Re-throw to handle specific UI resets in caller
         }
     }
@@ -371,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (file.name.endsWith('.graphml')) {
                     isGraphML = true;
                 } else {
-                    alert('Unsupported file format. Please upload .gexf or .graphml files.');
+                    alert(i18next.t('uploadError'));
                     return;
                 }
 
@@ -519,7 +592,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     saveProjectNameInput.value = today;
                 }
             } catch (e) {
-                showToast("Please log in to save projects.", "error");
+                showToast(i18next.t('loginToSave'), "error");
             }
         });
     }
@@ -534,7 +607,7 @@ document.addEventListener('DOMContentLoaded', function () {
         confirmSaveBtn.addEventListener('click', async () => {
             const name = saveProjectNameInput.value.trim();
             if (!name) {
-                showToast("Please enter a project name.", "error");
+                showToast(i18next.t('enterProjectName'), "error");
                 return;
             }
 
@@ -556,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     currentProjectId = result.project.id;
                 }
 
-                showToast("Project saved successfully!", "success");
+                showToast(i18next.t('saveSuccess'), "success");
                 saveModal.classList.add('hidden');
 
             } catch (error) {
@@ -578,7 +651,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 loadModal.classList.remove('hidden');
                 refreshProjectList();
             } catch (e) {
-                showToast("Please log in to load projects.", "error");
+                showToast(i18next.t('loginToLoad'), "error");
             }
         });
     }
@@ -599,7 +672,7 @@ document.addEventListener('DOMContentLoaded', function () {
             projectListContainer.innerHTML = '';
 
             if (projects.length === 0) {
-                projectListContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">No saved projects found.</div>';
+                projectListContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">' + i18next.t('noProjects') + '</div>';
                 return;
             }
 
@@ -648,12 +721,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 const delBtn = item.querySelector('.delete-project-btn');
                 delBtn.addEventListener('click', async (e) => {
                     e.stopPropagation();
-                    if (confirm(`Are you sure you want to delete "${p.name}"?`)) {
+                    if (confirm(i18next.t('deleteConfirm', { name: p.name }))) {
                         try {
                             await API.deleteProject(p.id);
                             item.remove();
                             if (currentProjectId === p.id) currentProjectId = null;
-                            showToast("Project deleted.", "success");
+                            showToast(i18next.t('deleteSuccess'), "success");
                         } catch (err) {
                             showToast("Failed to delete project.", "error");
                         }
@@ -670,7 +743,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } catch (error) {
             console.error("List refresh error:", error);
-            projectListContainer.innerHTML = '<div style="text-align:center; padding:20px; color:red;">Failed to load project list.</div>';
+            projectListContainer.innerHTML = '<div style="text-align:center; padding:20px; color:red;">' + i18next.t('loadFailed') + '</div>';
         }
     }
 
@@ -703,7 +776,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data) {
                 cy.json(data);
                 extractAndPopulateAttributes();
-                showToast("Project loaded!", "success");
+                showToast(i18next.t('loadSuccess'), "success");
             }
 
         } catch (e) {

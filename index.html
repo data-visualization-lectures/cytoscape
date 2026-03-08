@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cytoscape Network Visualization</title>
+    <title id="pageTitle">Cytoscape Network Visualization</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
     <script src="https://unpkg.com/cytoscape-svg@0.4.0/cytoscape-svg.js"></script>
     <script src="https://unpkg.com/graphology@0.25.4/dist/graphology.umd.js"></script>
     <script src="https://unpkg.com/graphology-library@0.8.0/dist/graphology-library.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/i18next@23.7.6/dist/umd/i18next.min.js"></script>
     <script>
         window.DATAVIZ_HEADER_CONFIG = { mode: 'public' };
     </script>
@@ -31,7 +32,7 @@
     <dataviz-tool-header></dataviz-tool-header>
     <div id="controls">
         <div class="control-row">
-            <label for="layout-select">レイアウト:</label>
+            <label for="layout-select" id="layoutLabel">レイアウト:</label>
             <select id="layout-select">
                 <option value="grid">Grid</option>
                 <option value="circle">Circle</option>
@@ -40,7 +41,7 @@
                 <option value="cose">Cose (Physics)</option>
                 <option value="random">Random</option>
             </select>
-            <label for="easing-select">イージング:</label>
+            <label for="easing-select" id="easingLabel">イージング:</label>
             <select id="easing-select">
                 <option value="ease">Ease</option>
                 <option value="linear">Linear</option>
@@ -48,15 +49,15 @@
                 <option value="ease-out">Ease Out</option>
                 <option value="ease-in-out">Ease In Out</option>
             </select>
-            <label for="node-color-select">色:</label>
+            <label for="node-color-select" id="colorLabel">色:</label>
             <select id="node-color-select">
                 <option value="">(None)</option>
             </select>
-            <label for="node-size-select">サイズ:</label>
+            <label for="node-size-select" id="sizeLabel">サイズ:</label>
             <select id="node-size-select">
                 <option value="">(None)</option>
             </select>
-            <label for="node-label-select">ラベル:</label>
+            <label for="node-label-select" id="labelLabel">ラベル:</label>
             <select id="node-label-select">
                 <option value="">(Default)</option>
             </select>
@@ -66,7 +67,7 @@
         <input type="file" id="file-upload" accept=".gexf, .graphml" style="display: none;">
 
         <div class="sample-dataset-container" style="display: none;">
-            <label for="sample-dataset-select">サンプル・データセット:</label>
+            <label for="sample-dataset-select" id="sampleLabel">サンプル・データセット:</label>
             <select id="sample-dataset-select">
                 <optgroup label="Social Networks">
                     <option value="lesmis" selected>Les Misérables</option>
@@ -94,23 +95,23 @@
     <!-- Modals -->
     <div id="save-modal" class="modal hidden">
         <div class="modal-content">
-            <h2>Save Project</h2>
+            <h2 id="saveTitle">Save Project</h2>
             <input type="text" id="save-project-name" placeholder="Project Name">
             <div class="modal-actions">
-                <button id="confirm-save-btn" class="primary-btn">Save</button>
-                <button id="cancel-save-btn" class="secondary-btn">Cancel</button>
+                <button id="confirm-save-btn" class="primary-btn" id="saveBtnLabel">Save</button>
+                <button id="cancel-save-btn" class="secondary-btn" id="cancelSaveBtnLabel">Cancel</button>
             </div>
         </div>
     </div>
 
     <div id="load-modal" class="modal hidden">
         <div class="modal-content large-modal">
-            <h2>Load Project</h2>
+            <h2 id="loadTitle">Load Project</h2>
             <div id="project-list" class="project-list">
                 <!-- Projects will be injected here -->
             </div>
             <div class="modal-actions">
-                <button id="cancel-load-btn" class="secondary-btn">Close</button>
+                <button id="cancel-load-btn" class="secondary-btn" id="closeBtnLabel">Close</button>
             </div>
         </div>
     </div>
