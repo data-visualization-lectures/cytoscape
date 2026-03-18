@@ -10,6 +10,9 @@
     <script src="https://unpkg.com/graphology@0.25.4/dist/graphology.umd.js"></script>
     <script src="https://unpkg.com/graphology-library@0.8.0/dist/graphology-library.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/i18next@23.7.6/dist/umd/i18next.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-color@3/dist/d3-color.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3/dist/d3-interpolate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-scale-chromatic@3/dist/d3-scale-chromatic.min.js"></script>
     <script>
         window.DATAVIZ_HEADER_CONFIG = { mode: 'public' };
     </script>
@@ -49,6 +52,9 @@
                 <option value="ease-out">Ease Out</option>
                 <option value="ease-in-out">Ease In Out</option>
             </select>
+        </div>
+        <div class="control-row">
+            <span class="control-group-label" id="nodeGroupLabel">ノード</span>
             <label for="node-color-select" id="colorLabel">色:</label>
             <select id="node-color-select">
                 <option value="">(None)</option>
@@ -62,9 +68,24 @@
                 <option value="">(Default)</option>
             </select>
         </div>
+        <div class="control-row">
+            <span class="control-group-label" id="edgeGroupLabel">エッジ</span>
+            <label for="edge-color-select" id="edgeColorLabel">色:</label>
+            <select id="edge-color-select">
+                <option value="">(None)</option>
+            </select>
+            <label for="edge-size-select" id="edgeSizeLabel">太さ:</label>
+            <select id="edge-size-select">
+                <option value="">(None)</option>
+            </select>
+            <label for="edge-label-select" id="edgeLabelLabel">ラベル:</label>
+            <select id="edge-label-select">
+                <option value="">(None)</option>
+            </select>
+        </div>
 
         <!-- Hidden inputs triggered by tool header -->
-        <input type="file" id="file-upload" accept=".gexf, .graphml" style="display: none;">
+        <input type="file" id="file-upload" accept=".gexf, .graphml, .csv" style="display: none;">
 
         <div class="sample-dataset-container" style="display: none;">
             <label for="sample-dataset-select" id="sampleLabel">サンプル・データセット:</label>
