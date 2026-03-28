@@ -124,9 +124,6 @@ function initializeUI() {
     document.getElementById('sizeLabel').textContent = i18next.t('sizeLabel');
     document.getElementById('labelLabel').textContent = i18next.t('labelLabel');
     document.getElementById('sampleLabel').textContent = i18next.t('sampleLabel');
-    document.getElementById('saveTitle').textContent = i18next.t('saveTitle');
-    document.getElementById('confirm-save-btn').textContent = i18next.t('save');
-    document.getElementById('cancel-save-btn').textContent = i18next.t('cancel');
     document.getElementById('nodeGroupLabel').textContent = i18next.t('nodeGroupLabel');
     document.getElementById('edgeGroupLabel').textContent = i18next.t('edgeGroupLabel');
     document.getElementById('edgeColorLabel').textContent = i18next.t('edgeColorLabel');
