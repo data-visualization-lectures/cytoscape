@@ -127,10 +127,6 @@ function initializeUI() {
     document.getElementById('saveTitle').textContent = i18next.t('saveTitle');
     document.getElementById('confirm-save-btn').textContent = i18next.t('save');
     document.getElementById('cancel-save-btn').textContent = i18next.t('cancel');
-    document.getElementById('save-project-name').placeholder = i18next.t('projectNamePlaceholder');
-    document.getElementById('loadTitle').textContent = i18next.t('loadTitle');
-    document.getElementById('cancel-load-btn').textContent = i18next.t('close');
-    document.getElementById('server-load-btn').textContent = i18next.t('serverLoadBtn');
     document.getElementById('nodeGroupLabel').textContent = i18next.t('nodeGroupLabel');
     document.getElementById('edgeGroupLabel').textContent = i18next.t('edgeGroupLabel');
     document.getElementById('edgeColorLabel').textContent = i18next.t('edgeColorLabel');
@@ -742,88 +738,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // ==========================================
-    // Server Storage Implementation (Supabase)
+    // Project Management State
     // ==========================================
 
-    // Use shared Supabase client from dataviz-auth-client.js
-    const API_BASE_URL = "https://api.dataviz.jp";
-
-    // API Functions
-    async function getAuthHeaders() {
-        if (!window.datavizSupabase) throw new Error("Supabase client not initialized (Global)");
-        const { data: { session } } = await window.datavizSupabase.auth.getSession();
-        if (!session) throw new Error("Not authenticated");
-        return {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json'
-        };
-    }
-
-    const API = {
-        async fetchProjects() {
-            const headers = await getAuthHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/projects?app=cytoscape`, { headers });
-            if (!response.ok) throw new Error("Failed to fetch projects");
-            return await response.json();
-        },
-
-        async saveProject(name, data, thumbnailBase64, id = null) {
-            const headers = await getAuthHeaders();
-            const payload = {
-                name: name,
-                app_name: 'cytoscape',
-                data: data,
-                thumbnail: thumbnailBase64
-            };
-
-            let url = `${API_BASE_URL}/api/projects`;
-            let method = 'POST';
-
-            if (id) {
-                url = `${API_BASE_URL}/api/projects/${id}`;
-                method = 'PUT';
-            }
-
-            const response = await fetch(url, {
-                method: method,
-                headers: headers,
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) throw new Error("Failed to save project");
-            return await response.json();
-        },
-
-        async loadProject(id) {
-            const headers = await getAuthHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, { headers });
-            if (!response.ok) throw new Error("Failed to load project data");
-            return await response.json();
-        },
-
-        async deleteProject(id) {
-            const headers = await getAuthHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
-                method: 'DELETE',
-                headers: headers
-            });
-            if (!response.ok) throw new Error("Failed to delete project");
-            return await response.json();
-        }
-    };
-
-    // UI & Logic
-    const serverSaveBtn = document.getElementById('server-save-btn');
-    const serverLoadBtn = document.getElementById('server-load-btn');
-    const saveModal = document.getElementById('save-modal');
-    const loadModal = document.getElementById('load-modal');
-    const confirmSaveBtn = document.getElementById('confirm-save-btn');
-    const cancelSaveBtn = document.getElementById('cancel-save-btn');
-    const cancelLoadBtn = document.getElementById('cancel-load-btn');
-    const saveProjectNameInput = document.getElementById('save-project-name');
-    const projectListContainer = document.getElementById('project-list');
-
-    let currentProjectId = null; // Track currently loaded project ID for updates
+    let currentProjectId = null;
+    let currentProjectName = null;
 
     // --- Toast Notification Helper ---
     function showToast(message, type = 'info') {
@@ -856,213 +775,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 3000);
     }
 
-    // --- Save Flow ---
-    if (serverSaveBtn) {
-        serverSaveBtn.addEventListener('click', async () => {
-            // Check auth first
-            try {
-                await getAuthHeaders();
-                saveModal.classList.remove('hidden');
 
-                // Set default name to YYYY-MM-DD if empty or if needed
-                if (!saveProjectNameInput.value) {
-                    const today = new Date().toISOString().split('T')[0];
-                    saveProjectNameInput.value = today;
-                }
-            } catch (e) {
-                showToast(i18next.t('loginToSave'), "error");
-            }
-        });
-    }
-
-    if (cancelSaveBtn) {
-        cancelSaveBtn.addEventListener('click', () => {
-            saveModal.classList.add('hidden');
-        });
-    }
-
-    if (confirmSaveBtn) {
-        confirmSaveBtn.addEventListener('click', async () => {
-            const name = saveProjectNameInput.value.trim();
-            if (!name) {
-                showToast(i18next.t('enterProjectName'), "error");
-                return;
-            }
-
-            confirmSaveBtn.textContent = i18next.t('saving');
-            confirmSaveBtn.disabled = true;
-
-            try {
-                // 1. Generate Thumbnail
-                const pngContent = cy.png({ output: 'base64uri', full: true, scale: 0.5, maxWidth: 600 });
-
-                // 2. Serialize Data
-                const data = cy.json();
-
-                // 3. Save API Call
-                const result = await API.saveProject(name, data, pngContent, currentProjectId);
-
-                // 4. Update state
-                if (result.project && result.project.id) {
-                    currentProjectId = result.project.id;
-                }
-
-                showToast(i18next.t('saveSuccess'), "success");
-                saveModal.classList.add('hidden');
-
-            } catch (error) {
-                console.error("Save error:", error);
-                showToast(i18next.t('saveFailed') + " " + error.message, "error");
-            } finally {
-                confirmSaveBtn.textContent = i18next.t('save');
-                confirmSaveBtn.disabled = false;
-            }
-        });
-    }
-
-    // --- Load Flow ---
-    if (serverLoadBtn) {
-        serverLoadBtn.addEventListener('click', async () => {
-            try {
-                // Check auth
-                await getAuthHeaders();
-                loadModal.classList.remove('hidden');
-                refreshProjectList();
-            } catch (e) {
-                showToast(i18next.t('loginToLoad'), "error");
-            }
-        });
-    }
-
-    if (cancelLoadBtn) {
-        cancelLoadBtn.addEventListener('click', () => {
-            loadModal.classList.add('hidden');
-        });
-    }
-
-    async function refreshProjectList() {
-        projectListContainer.innerHTML = '<div style="text-align:center; padding:20px;">' + i18next.t('loadingProjects') + '</div>';
-
-        try {
-            const data = await API.fetchProjects();
-            const projects = data.projects || [];
-
-            projectListContainer.innerHTML = '';
-
-            if (projects.length === 0) {
-                projectListContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">' + i18next.t('noProjects') + '</div>';
-                return;
-            }
-
-            projects.forEach(p => {
-                const item = document.createElement('div');
-                item.className = 'project-item';
-
-                // Initial creation date formatting
-                const dateStr = new Date(p.updated_at || p.created_at).toLocaleString();
-
-                // Thumbnail handling
-                let imgHtml = '';
-                if (p.thumbnail_path) {
-                    const thumbUrl = `${API_BASE_URL}/api/projects/${p.id}/thumbnail`;
-                    item.dataset.thumbUrl = thumbUrl;
-                    imgHtml = `<div class="project-thumbnail" style="display:flex;align-items:center;justify-content:center;font-size:10px;color:#888;">${i18next.t('checking')}</div>`;
-                } else {
-                    imgHtml = `<div class="project-thumbnail" style="background:#eee;"></div>`;
-                }
-
-                item.innerHTML = `
-                    ${imgHtml}
-                    <div class="project-info">
-                        <span class="project-name">${p.name}</span>
-                        <span class="project-date">${dateStr}</span>
-                    </div>
-                    <button class="delete-project-btn" title="${i18next.t('deleteBtn')}">×</button>
-                `;
-
-                // Load Action
-                item.addEventListener('click', async (e) => {
-                    if (e.target.classList.contains('delete-project-btn')) return; // Ignore delete click
-
-                    loadModal.classList.add('hidden');
-                    try {
-                        await loadProjectToGraph(p.id);
-                        currentProjectId = p.id;
-                        saveProjectNameInput.value = p.name; // Update name input for subsequent saves
-                    } catch (err) {
-                        console.error(err);
-                        showToast(i18next.t('loadFailed'), "error");
-                    }
-                });
-
-                // Delete Action
-                const delBtn = item.querySelector('.delete-project-btn');
-                delBtn.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    if (confirm(i18next.t('deleteConfirm', { name: p.name }))) {
-                        try {
-                            await API.deleteProject(p.id);
-                            item.remove();
-                            if (currentProjectId === p.id) currentProjectId = null;
-                            showToast(i18next.t('deleteSuccess'), "success");
-                        } catch (err) {
-                            showToast(i18next.t('deleteFailed'), "error");
-                        }
-                    }
-                });
-
-                projectListContainer.appendChild(item);
-
-                // Lazy load thumbnail
-                if (p.thumbnail_path) {
-                    loadThumbnailBlob(p.id, item.querySelector('.project-thumbnail'));
-                }
-            });
-
-        } catch (error) {
-            console.error("List refresh error:", error);
-            projectListContainer.innerHTML = '<div style="text-align:center; padding:20px; color:red;">' + i18next.t('loadFailed') + '</div>';
-        }
-    }
-
-    async function loadThumbnailBlob(projectId, imgContainer) {
-        try {
-            const headers = await getAuthHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/thumbnail`, { headers });
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                imgContainer.innerHTML = '';
-                imgContainer.style.backgroundImage = `url(${url})`;
-                imgContainer.style.backgroundSize = 'cover';
-                imgContainer.style.backgroundPosition = 'center';
-            } else {
-                imgContainer.textContent = i18next.t('noImg');
-            }
-        } catch (e) {
-            imgContainer.textContent = i18next.t('imgErr');
-        }
-    }
-
-    async function loadProjectToGraph(id) {
-        // Show loading indicator
-        const originalText = serverLoadBtn ? serverLoadBtn.textContent : '';
-        if (serverLoadBtn) serverLoadBtn.textContent = i18next.t('loading');
-
-        try {
-            const data = await API.loadProject(id);
-            if (data) {
-                cy.json(data);
-                extractAndPopulateAttributes();
-                showToast(i18next.t('loadSuccess'), "success");
-            }
-
-        } catch (e) {
-            throw e;
-        } finally {
-            if (serverLoadBtn) serverLoadBtn.textContent = originalText || i18next.t('loadFromServer');
-        }
-    }
 
     // --- URL Parameter Auto-Load ---
     const urlParams = new URLSearchParams(window.location.search);
@@ -1070,8 +783,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (urlProjectId) {
         setTimeout(async () => {
             try {
-                await loadProjectToGraph(urlProjectId);
-                currentProjectId = urlProjectId;
+                const toolHeader = document.querySelector('dataviz-tool-header');
+                if (toolHeader && toolHeader.loadProject) {
+                    const projectData = await toolHeader.loadProject(urlProjectId);
+                    cy.json(projectData);
+                    extractAndPopulateAttributes();
+                    currentProjectId = urlProjectId;
+                }
             } catch (e) {
                 console.log("Auto-load failed (likely auth or invalid ID):", e);
             }
@@ -1085,9 +803,38 @@ document.addEventListener('DOMContentLoaded', function () {
         const toolHeader = document.querySelector('dataviz-tool-header');
         console.log('Found toolHeader:', toolHeader);
         if (toolHeader) {
-            // Trigger hidden buttons
-            const handleSave = () => { if (serverSaveBtn) serverSaveBtn.click(); };
-            const handleLoad = () => { if (serverLoadBtn) serverLoadBtn.click(); };
+            // Configure project management
+            toolHeader.setProjectConfig({
+                appName: 'cytoscape',
+                onProjectLoad: (projectData) => {
+                    cy.json(projectData);
+                    extractAndPopulateAttributes();
+                    showToast(i18next.t('loadSuccess'), 'success');
+                },
+                onProjectSave: (meta) => {
+                    currentProjectId = meta.id;
+                    currentProjectName = meta.name;
+                },
+                onProjectDelete: (projectId) => {
+                    if (currentProjectId === projectId) {
+                        currentProjectId = null;
+                        currentProjectName = null;
+                    }
+                }
+            });
+
+            // Define button handlers
+            const handleSave = () => {
+                const thumbnailDataUri = cy.png({ output: 'base64uri', full: true, scale: 0.5, maxWidth: 600 });
+                const data = cy.json();
+                toolHeader.showSaveModal({
+                    name: currentProjectName,
+                    data: data,
+                    thumbnailDataUri: thumbnailDataUri,
+                    existingProjectId: currentProjectId,
+                });
+            };
+            const handleLoad = () => { toolHeader.showLoadModal(); };
             const handleFileLoad = () => { if (fileUpload) fileUpload.click(); };
             const loadSample = (key) => {
                 if (sampleDatasetSelect) {
