@@ -855,22 +855,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         align: 'left'
                     },
                     {
-                        label: i18next.t('btnLoadSample'),
-                        type: 'dropdown',
-                        align: 'left',
-                        items: [
-                            { label: 'Les Misérables', action: () => loadSample('lesmis') },
-                            { label: 'Game of Thrones', action: () => loadSample('got') },
-                            { label: 'Marvel Universe', action: () => loadSample('marvel') },
-                            { label: 'Quakers', action: () => loadSample('quakers') },
-                            { label: 'EuroSiS', action: () => loadSample('eurosis') },
-                            { label: 'Diseasome', action: () => loadSample('diseasome') },
-                            { label: 'C. Elegans', action: () => loadSample('celegans') },
-                            { label: 'Java Dependencies', action: () => loadSample('java') },
-                            { label: 'Power Grid', action: () => loadSample('powergrid') }
-                        ]
-                    },
-                    {
                         label: i18next.t('btnLoadProject'),
                         action: handleLoad,
                         align: 'right'
@@ -888,6 +872,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 ]
             });
             console.log('setConfig called.');
+
+            // Sample data picker integration
+            toolHeader.setSampleConfig({
+                toolId: 'cytoscape',
+                onSampleSelect: function (detail) {
+                    fetch(detail.url)
+                        .then(function (res) { return res.text(); })
+                        .then(function (content) {
+                            if (detail.format === 'graphml') {
+                                loadGraphData(content, true);
+                            } else if (detail.format === 'gexf') {
+                                loadGraphData(content, false);
+                            } else if (detail.format === 'csv') {
+                                loadCSVData(content);
+                            }
+                        });
+                }
+            });
         } else {
             console.error('dataviz-tool-header element not found in DOM.');
         }
