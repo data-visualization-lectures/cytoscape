@@ -776,6 +776,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- URL Parameter Auto-Load ---
     const urlParams = new URLSearchParams(window.location.search);
+    const dataUrl = urlParams.get('data_url');
+    if (dataUrl) {
+        fetch(dataUrl)
+            .then(res => res.text())
+            .then(content => {
+                if (dataUrl.endsWith('.graphml')) {
+                    loadGraphData(content, true);
+                } else if (dataUrl.endsWith('.gexf')) {
+                    loadGraphData(content, false);
+                } else if (dataUrl.endsWith('.csv')) {
+                    loadCSVData(content);
+                }
+            })
+            .catch(err => console.error('data_url load failed:', err));
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
     const urlProjectId = urlParams.get('project_id');
     if (urlProjectId) {
         setTimeout(async () => {
