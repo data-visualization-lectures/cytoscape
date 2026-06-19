@@ -779,7 +779,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function installHeaderProcessingToasts(header) {
-        if (!header || header.__dvzProcessingToastsInstalled === '1') return;
+        if (!header || header.__dvzNativeProjectProcessingToasts === '1' || header.__dvzProcessingToastsInstalled === '1') return;
 
         if (typeof header.showLoadModal === 'function') {
             const originalShowLoadModal = header.showLoadModal.bind(header);
