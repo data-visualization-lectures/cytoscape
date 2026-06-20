@@ -618,6 +618,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // SVG Export Function
     function downloadSVG() {
+        showProcessingToast(i18next.t('processingExport', '書き出し中です'));
         const svgContent = cy.svg({ scale: 1, full: true });
         const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
 
@@ -706,6 +707,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        showProcessingToast(i18next.t('processingFile', 'ファイルを読み込み中です'));
         const reader = new FileReader();
         reader.onload = function (e) {
             const content = e.target.result;
@@ -742,10 +744,10 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentProjectName = null;
 
     // --- Toast Notification Helper ---
-    function showToast(message, type = 'info') {
+    function showToast(message, type = 'info', duration = 3000) {
         const toolHeader = document.querySelector('dataviz-tool-header');
         if (toolHeader && toolHeader.showMessage) {
-            toolHeader.showMessage(message, type, 3000);
+            toolHeader.showMessage(message, type, duration);
             return;
         }
 
@@ -769,7 +771,41 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => {
                 toast.remove();
             }, 300);
-        }, 3000);
+        }, duration);
+    }
+
+    function showProcessingToast(message) {
+        showToast(message || i18next.t('processingGeneric', '処理中です'), 'info', 5000);
+    }
+
+    function installHeaderProcessingToasts(header) {
+        if (!header || header.__dvzNativeProjectProcessingToasts === '1' || header.__dvzProcessingToastsInstalled === '1') return;
+
+        if (typeof header.showLoadModal === 'function') {
+            const originalShowLoadModal = header.showLoadModal.bind(header);
+            header.showLoadModal = (...args) => {
+                showProcessingToast(i18next.t('processingProjectList', 'プロジェクト一覧を読み込み中です'));
+                return originalShowLoadModal(...args);
+            };
+        }
+
+        if (typeof header.loadProject === 'function') {
+            const originalLoadProject = header.loadProject.bind(header);
+            header.loadProject = (...args) => {
+                showProcessingToast(i18next.t('processingProjectLoad', 'プロジェクトを読み込み中です'));
+                return originalLoadProject(...args);
+            };
+        }
+
+        if (typeof header.saveProject === 'function') {
+            const originalSaveProject = header.saveProject.bind(header);
+            header.saveProject = (...args) => {
+                showProcessingToast(i18next.t('processingProjectSave', 'プロジェクトを保存中です'));
+                return originalSaveProject(...args);
+            };
+        }
+
+        header.__dvzProcessingToastsInstalled = '1';
     }
 
 
@@ -778,6 +814,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const urlParams = new URLSearchParams(window.location.search);
     const dataUrl = urlParams.get('data_url');
     if (dataUrl) {
+        showProcessingToast(i18next.t('processingSample', 'サンプルデータを読み込み中です'));
         fetch(dataUrl)
             .then(res => res.text())
             .then(content => {
@@ -798,6 +835,7 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 const toolHeader = document.querySelector('dataviz-tool-header');
                 if (toolHeader && toolHeader.loadProject) {
+                    installHeaderProcessingToasts(toolHeader);
                     const projectData = await toolHeader.loadProject(urlProjectId);
                     cy.json(projectData);
                     extractAndPopulateAttributes();
@@ -816,6 +854,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const toolHeader = document.querySelector('dataviz-tool-header');
         console.log('Found toolHeader:', toolHeader);
         if (toolHeader) {
+            installHeaderProcessingToasts(toolHeader);
             // Configure project management
             toolHeader.setProjectConfig({
                 appName: 'cytoscape',
@@ -838,6 +877,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Define button handlers
             const handleSave = () => {
+                showProcessingToast(i18next.t('processingSavePrep', '保存準備中です'));
                 const thumbnailDataUri = cy.png({ output: 'base64uri', full: true, scale: 0.5, maxWidth: 600 });
                 const data = cy.json();
                 toolHeader.showSaveModal({
@@ -893,6 +933,7 @@ document.addEventListener('DOMContentLoaded', function () {
             toolHeader.setSampleConfig({
                 toolId: 'cytoscape',
                 onSampleSelect: function (detail) {
+                    showProcessingToast(i18next.t('processingSample', 'サンプルデータを読み込み中です'));
                     fetch(detail.url)
                         .then(function (res) { return res.text(); })
                         .then(function (content) {
