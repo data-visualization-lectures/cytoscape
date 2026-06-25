@@ -792,7 +792,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(err => console.error('data_url load failed:', err));
         window.history.replaceState({}, document.title, window.location.pathname);
     }
-    const urlProjectId = urlParams.get('project_id');
+    const urlProjectId = urlParams.get('projectId');
     if (urlProjectId) {
         setTimeout(async () => {
             try {
