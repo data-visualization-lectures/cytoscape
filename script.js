@@ -659,6 +659,13 @@ document.addEventListener('DOMContentLoaded', function () {
         'quakers': 'data/samples/quakers.graphml'
     };
 
+    function setHeaderProjectContext(context) {
+        const toolHeader = document.querySelector('dataviz-tool-header');
+        if (toolHeader && typeof toolHeader.setProjectContext === 'function') {
+            toolHeader.setProjectContext(context);
+        }
+    }
+
     sampleDatasetSelect.addEventListener('change', async function () {
         const datasetKey = this.value;
 
@@ -667,6 +674,16 @@ document.addEventListener('DOMContentLoaded', function () {
             this.disabled = true;
 
             const url = sampleDatasets[datasetKey];
+            const selectedOption = this.options[this.selectedIndex];
+            setHeaderProjectContext({
+                sourceType: 'sample',
+                sourceName: selectedOption ? selectedOption.textContent : datasetKey,
+                sourceNameEn: datasetKey,
+                canOverwrite: false,
+            });
+            currentProjectId = null;
+            currentProjectName = null;
+
             const response = await fetch(url);
 
             if (!response.ok) {
@@ -710,6 +727,15 @@ document.addEventListener('DOMContentLoaded', function () {
         reader.onload = function (e) {
             const content = e.target.result;
             try {
+                setHeaderProjectContext({
+                    sourceType: 'import',
+                    sourceName: file.name,
+                    sourceNameEn: file.name,
+                    canOverwrite: false,
+                });
+                currentProjectId = null;
+                currentProjectName = null;
+
                 if (file.name.endsWith('.csv')) {
                     loadCSVData(content);
                 } else if (file.name.endsWith('.gexf')) {
@@ -778,6 +804,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const urlParams = new URLSearchParams(window.location.search);
     const dataUrl = urlParams.get('data_url');
     if (dataUrl) {
+        const sourceName = dataUrl.split('/').pop().split('?')[0] || dataUrl;
+        setHeaderProjectContext({
+            sourceType: 'external-url',
+            sourceName,
+            sourceNameEn: sourceName,
+            canOverwrite: false,
+        });
+        currentProjectId = null;
+        currentProjectName = null;
+
         fetch(dataUrl)
             .then(res => res.text())
             .then(content => {
@@ -801,7 +837,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     const projectData = await toolHeader.loadProject(urlProjectId);
                     cy.json(projectData);
                     extractAndPopulateAttributes();
-                    currentProjectId = urlProjectId;
+                    const context = typeof toolHeader.getProjectContext === 'function'
+                        ? toolHeader.getProjectContext()
+                        : null;
+                    currentProjectId = context && context.canOverwrite ? (context.projectId || urlProjectId) : null;
+                    currentProjectName = context && context.projectName ? context.projectName : null;
                 }
             } catch (e) {
                 console.log("Auto-load failed (likely auth or invalid ID):", e);
@@ -819,7 +859,11 @@ document.addEventListener('DOMContentLoaded', function () {
             // Configure project management
             toolHeader.setProjectConfig({
                 appName: 'cytoscape',
-                onProjectLoad: (projectData) => {
+                toolName: 'ネットワーク可視化',
+                toolNameEn: 'Cytoscape Network Viz',
+                onProjectLoad: (projectData, meta = {}) => {
+                    currentProjectId = meta.canOverwrite ? meta.projectId : null;
+                    currentProjectName = meta.projectName || null;
                     cy.json(projectData);
                     extractAndPopulateAttributes();
                     showToast(i18next.t('loadSuccess'), 'success');
@@ -893,6 +937,8 @@ document.addEventListener('DOMContentLoaded', function () {
             toolHeader.setSampleConfig({
                 toolId: 'cytoscape',
                 onSampleSelect: function (detail) {
+                    currentProjectId = null;
+                    currentProjectName = null;
                     fetch(detail.url)
                         .then(function (res) { return res.text(); })
                         .then(function (content) {
