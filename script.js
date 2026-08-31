@@ -527,24 +527,26 @@ document.addEventListener('DOMContentLoaded', function () {
         autoEncodeOnNextLoad = false;
         const hasAttr = (attr) => cy.nodes().some((n) => n.data(attr) !== undefined);
         const hasEdgeAttr = (attr) => cy.edges().some((e) => e.data(attr) !== undefined);
-        if (!els.nodeColor.value && hasAttr('community')) {
+        if (hasAttr('community')) {
             els.nodeColor.value = 'community';
             els.nodeColorScale.value = 'categorical';
-            els.nodePalette.value = 'category10';
+            if (!['category10', 'tableau10', 'set2', 'okabe'].includes(els.nodePalette.value)) {
+                els.nodePalette.value = 'category10';
+            }
         }
-        if (!els.nodeSize.value && hasAttr('degree')) {
+        if (hasAttr('degree')) {
             const weightedDiffers = cy.nodes().some((n) => n.data('weightedDegree') !== n.data('degree'));
             els.nodeSize.value = (fromCsv && weightedDiffers && hasAttr('weightedDegree'))
                 ? 'weightedDegree'
                 : 'degree';
         }
-        if (!els.edgeSize.value && hasEdgeAttr('weight')) {
+        if (hasEdgeAttr('weight')) {
             els.edgeSize.value = 'weight';
-        }
-        if (fromCsv && !els.edgeColor.value && hasEdgeAttr('weight')) {
-            els.edgeColor.value = 'weight';
-            els.edgeColorScale.value = 'sequential';
-            els.edgePalette.value = 'blues';
+            if (fromCsv) {
+                els.edgeColor.value = 'weight';
+                els.edgeColorScale.value = 'sequential';
+                if (!SEQUENTIAL_PALETTES[els.edgePalette.value]) els.edgePalette.value = 'blues';
+            }
         }
         els.labelMode.value = cy.nodes().length > 80 ? 'top' : 'all';
         els.labelTopN.disabled = els.labelMode.value !== 'top';
