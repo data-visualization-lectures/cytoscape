@@ -126,6 +126,7 @@ cytoscape/
 ├── style.css           # スタイルシート
 ├── script.js           # アプリケーションロジック
 ├── network-utils.js    # CSV解析・列推定・エッジ集約
+├── network-utils.test.js
 ├── data/
 
 │   └── samples/        # サンプルデータセット
@@ -157,6 +158,16 @@ npx http-server -p 8001
 ブラウザで `http://localhost:8001` を開いてください。
 
 http://localhost:8001/?auth_debug
+
+### テスト
+
+CSV解析・列推定・重複エッジ集約のユニットテスト:
+
+```bash
+node network-utils.test.js
+```
+
+成功すると `network-utils tests passed` と表示されます。
 
 ### 新しいデータセットの追加
 
