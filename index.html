@@ -20,95 +20,252 @@
     <script src="https://app.dataviz.jp/lib/dataviz-auth-client.js"></script>
     <script src="https://id.data-viz-lectures.com/lib/dataviz-tool-header.js" defer></script>
     <link rel="stylesheet" href="style.css">
-    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1J6ZDNG6DQ"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-1J6ZDNG6DQ');
     </script>
 </head>
 
 <body>
     <dataviz-tool-header></dataviz-tool-header>
-    <div id="controls">
-        <div class="control-row">
-            <label for="layout-select" id="layoutLabel">レイアウト:</label>
-            <select id="layout-select">
-                <option value="grid">Grid</option>
-                <option value="circle">Circle</option>
-                <option value="concentric">Concentric</option>
-                <option value="breadthfirst">Breadthfirst</option>
-                <option value="cose">Cose (Physics)</option>
-                <option value="random">Random</option>
-            </select>
-            <label for="easing-select" id="easingLabel">イージング:</label>
-            <select id="easing-select">
-                <option value="ease">Ease</option>
-                <option value="linear">Linear</option>
-                <option value="ease-in">Ease In</option>
-                <option value="ease-out">Ease Out</option>
-                <option value="ease-in-out">Ease In Out</option>
-            </select>
-        </div>
-        <div class="control-row">
-            <span class="control-group-label" id="nodeGroupLabel">ノード</span>
-            <label for="node-color-select" id="colorLabel">色:</label>
-            <select id="node-color-select">
-                <option value="">(None)</option>
-            </select>
-            <label for="node-size-select" id="sizeLabel">サイズ:</label>
-            <select id="node-size-select">
-                <option value="">(None)</option>
-            </select>
-            <label for="node-label-select" id="labelLabel">ラベル:</label>
-            <select id="node-label-select">
-                <option value="">(Default)</option>
-            </select>
-        </div>
-        <div class="control-row">
-            <span class="control-group-label" id="edgeGroupLabel">エッジ</span>
-            <label for="edge-color-select" id="edgeColorLabel">色:</label>
-            <select id="edge-color-select">
-                <option value="">(None)</option>
-            </select>
-            <label for="edge-size-select" id="edgeSizeLabel">太さ:</label>
-            <select id="edge-size-select">
-                <option value="">(None)</option>
-            </select>
-            <label for="edge-label-select" id="edgeLabelLabel">ラベル:</label>
-            <select id="edge-label-select">
-                <option value="">(None)</option>
-            </select>
-        </div>
 
-        <!-- Hidden inputs triggered by tool header -->
-        <input type="file" id="file-upload" accept=".gexf, .graphml, .csv" style="display: none;">
-
-        <div class="sample-dataset-container" style="display: none;">
-            <label for="sample-dataset-select" id="sampleLabel">サンプル・データセット:</label>
-            <select id="sample-dataset-select">
-                <optgroup label="Social Networks">
-                    <option value="lesmis" selected>Les Misérables</option>
-                    <option value="got">Game of Thrones</option>
-                    <option value="marvel">Marvel Universe</option>
-                    <option value="quakers">Quakers (17th Century)</option>
-                </optgroup>
-                <optgroup label="Scientific Networks">
-                    <option value="eurosis">EuroSiS</option>
-                    <option value="diseasome">Diseasome</option>
-                    <option value="celegans">C. Elegans</option>
-                    <option value="java">Java Dependencies</option>
-                    <option value="powergrid">Power Grid</option>
-                </optgroup>
-            </select>
-        </div>
-
+    <div id="viz-stage">
+        <h1 id="chart-title" hidden></h1>
+        <div id="cy"></div>
+        <div id="chart-source" hidden></div>
+        <div id="legend" hidden></div>
+        <div id="tooltip" hidden></div>
     </div>
-    <div id="cy"></div>
 
+    <div id="controls">
+        <div class="controls-header">
+            <div id="graph-summary" data-i18n="summaryEmpty">グラフ未読込</div>
+            <button type="button" id="toggle-controls-btn" aria-label="Toggle controls">
+                <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" />
+                </svg>
+            </button>
+        </div>
+        <div id="controls-body">
+            <div class="control-row">
+                <label for="layout-select" data-i18n="layoutLabel">レイアウト:</label>
+                <select id="layout-select">
+                    <option value="cose" selected>Cose (Physics)</option>
+                    <option value="circle">Circle</option>
+                    <option value="concentric">Concentric</option>
+                    <option value="breadthfirst">Breadthfirst</option>
+                    <option value="grid">Grid</option>
+                    <option value="random">Random</option>
+                </select>
+                <label for="easing-select" data-i18n="easingLabel">イージング:</label>
+                <select id="easing-select">
+                    <option value="ease">Ease</option>
+                    <option value="linear">Linear</option>
+                    <option value="ease-in">Ease In</option>
+                    <option value="ease-out">Ease Out</option>
+                    <option value="ease-in-out">Ease In Out</option>
+                </select>
+                <button type="button" id="fit-btn" class="secondary-btn compact-btn" data-i18n="fitBtn">フィット</button>
+            </div>
+
+            <div class="control-row">
+                <span class="control-group-label" data-i18n="graphGroupLabel">グラフ</span>
+                <label for="directed-select" data-i18n="directedLabel">向き:</label>
+                <select id="directed-select">
+                    <option value="undirected" selected data-i18n="undirectedOption">無向</option>
+                    <option value="directed" data-i18n="directedOption">有向</option>
+                </select>
+                <label class="inline-check">
+                    <input type="checkbox" id="arrow-toggle">
+                    <span data-i18n="arrowLabel">矢印</span>
+                </label>
+                <label for="curve-select" data-i18n="curveLabel">線:</label>
+                <select id="curve-select">
+                    <option value="bezier">Bezier</option>
+                    <option value="straight" data-i18n="straightOption">直線</option>
+                    <option value="haystack">Haystack</option>
+                </select>
+                <label for="background-select" data-i18n="bgLabel">背景:</label>
+                <select id="background-select">
+                    <option value="white" selected data-i18n="bgWhite">白</option>
+                    <option value="light" data-i18n="bgLight">淡色</option>
+                    <option value="dark" data-i18n="bgDark">暗色</option>
+                </select>
+            </div>
+
+            <div class="control-row">
+                <span class="control-group-label" data-i18n="nodeGroupLabel">ノード</span>
+                <label for="node-color-select" data-i18n="colorLabel">色:</label>
+                <select id="node-color-select">
+                    <option value="">(None)</option>
+                </select>
+                <label for="node-color-scale" data-i18n="scaleLabel">尺度:</label>
+                <select id="node-color-scale">
+                    <option value="auto" data-i18n="scaleAuto">自動</option>
+                    <option value="categorical" data-i18n="scaleCategorical">カテゴリ</option>
+                    <option value="sequential" data-i18n="scaleSequential">連続</option>
+                </select>
+                <label for="node-palette-select" data-i18n="paletteLabel">パレット:</label>
+                <select id="node-palette-select">
+                    <option value="category10">Category10</option>
+                    <option value="tableau10">Tableau10</option>
+                    <option value="set2">Set2</option>
+                    <option value="okabe" data-i18n="paletteOkabe">色覚安全</option>
+                    <option value="blues">Blues</option>
+                    <option value="oranges">Oranges</option>
+                    <option value="greens">Greens</option>
+                    <option value="viridis">Viridis</option>
+                    <option value="plasma">Plasma</option>
+                </select>
+            </div>
+
+            <div class="control-row">
+                <span class="control-spacer"></span>
+                <label for="node-size-select" data-i18n="sizeLabel">サイズ:</label>
+                <select id="node-size-select">
+                    <option value="">(None)</option>
+                </select>
+                <label for="node-size-min" data-i18n="sizeMinLabel">最小:</label>
+                <input type="number" id="node-size-min" min="4" max="80" value="20">
+                <label for="node-size-max" data-i18n="sizeMaxLabel">最大:</label>
+                <input type="number" id="node-size-max" min="10" max="200" value="80">
+            </div>
+
+            <div class="control-row">
+                <span class="control-spacer"></span>
+                <label for="node-label-select" data-i18n="labelLabel">ラベル:</label>
+                <select id="node-label-select">
+                    <option value="">(Default)</option>
+                </select>
+                <label for="label-mode-select" data-i18n="labelModeLabel">表示:</label>
+                <select id="label-mode-select">
+                    <option value="all" data-i18n="labelAll">すべて</option>
+                    <option value="top" selected data-i18n="labelTop">上位</option>
+                    <option value="selected" data-i18n="labelSelected">選択時</option>
+                    <option value="none" data-i18n="labelNone">なし</option>
+                </select>
+                <label for="label-top-n" data-i18n="labelTopN">N:</label>
+                <input type="number" id="label-top-n" min="1" max="500" value="20">
+            </div>
+
+            <div class="control-row">
+                <span class="control-group-label" data-i18n="edgeGroupLabel">エッジ</span>
+                <label for="edge-color-select" data-i18n="edgeColorLabel">色:</label>
+                <select id="edge-color-select">
+                    <option value="">(None)</option>
+                </select>
+                <label for="edge-color-scale" data-i18n="scaleLabel">尺度:</label>
+                <select id="edge-color-scale">
+                    <option value="auto" data-i18n="scaleAuto">自動</option>
+                    <option value="categorical" data-i18n="scaleCategorical">カテゴリ</option>
+                    <option value="sequential" data-i18n="scaleSequential">連続</option>
+                </select>
+                <label for="edge-palette-select" data-i18n="paletteLabel">パレット:</label>
+                <select id="edge-palette-select">
+                    <option value="blues" selected>Blues</option>
+                    <option value="oranges">Oranges</option>
+                    <option value="greens">Greens</option>
+                    <option value="viridis">Viridis</option>
+                    <option value="plasma">Plasma</option>
+                    <option value="category10">Category10</option>
+                    <option value="tableau10">Tableau10</option>
+                    <option value="okabe" data-i18n="paletteOkabe">色覚安全</option>
+                </select>
+            </div>
+
+            <div class="control-row">
+                <span class="control-spacer"></span>
+                <label for="edge-size-select" data-i18n="edgeSizeLabel">太さ:</label>
+                <select id="edge-size-select">
+                    <option value="">(None)</option>
+                </select>
+                <label for="edge-label-select" data-i18n="edgeLabelLabel">ラベル:</label>
+                <select id="edge-label-select">
+                    <option value="">(None)</option>
+                </select>
+            </div>
+
+            <div class="control-row annotate-row">
+                <span class="control-group-label" data-i18n="annotateGroupLabel">注釈</span>
+                <label for="chart-title-input" data-i18n="titleLabel">タイトル:</label>
+                <input type="text" id="chart-title-input" data-i18n-placeholder="titlePlaceholder">
+                <label for="chart-source-input" data-i18n="sourceLabel">出典:</label>
+                <input type="text" id="chart-source-input" data-i18n-placeholder="sourcePlaceholder">
+            </div>
+
+            <div class="control-row">
+                <button type="button" id="paste-csv-btn" class="secondary-btn compact-btn" data-i18n="pasteCsvBtn">CSVを貼り付け</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="file-upload" accept=".gexf,.graphml,.csv,.tsv,.txt" style="display: none;">
+
+    <div class="sample-dataset-container" style="display: none;">
+        <label for="sample-dataset-select" id="sampleLabel">サンプル・データセット:</label>
+        <select id="sample-dataset-select">
+            <optgroup label="Social Networks">
+                <option value="lesmis" selected>Les Misérables</option>
+                <option value="got">Game of Thrones</option>
+                <option value="marvel">Marvel Universe</option>
+                <option value="quakers">Quakers (17th Century)</option>
+                <option value="cooccurrence">Tezuka Co-occurrence (CSV)</option>
+            </optgroup>
+            <optgroup label="Scientific Networks">
+                <option value="eurosis">EuroSiS</option>
+                <option value="diseasome">Diseasome</option>
+                <option value="celegans">C. Elegans</option>
+                <option value="java">Java Dependencies</option>
+                <option value="powergrid">Power Grid</option>
+            </optgroup>
+        </select>
+    </div>
+
+    <div id="csv-modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-content large-modal csv-modal-content">
+            <h2 data-i18n="csvModalTitle">CSVの列対応</h2>
+            <p class="modal-help" data-i18n="csvModalHelp">始点と終点の列を指定してください。Excelから表を貼り付けることもできます。</p>
+            <textarea id="csv-paste" rows="6" data-i18n-placeholder="csvPastePlaceholder"></textarea>
+            <div class="mapping-grid">
+                <label for="map-source" data-i18n="mapSource">始点</label>
+                <select id="map-source"></select>
+                <label for="map-target" data-i18n="mapTarget">終点</label>
+                <select id="map-target"></select>
+                <label for="map-weight" data-i18n="mapWeight">重み</label>
+                <select id="map-weight"></select>
+            </div>
+            <label class="inline-check">
+                <input type="checkbox" id="map-aggregate" checked>
+                <span data-i18n="mapAggregate">重複エッジを集約（重みを合計）</span>
+            </label>
+            <label class="inline-check">
+                <input type="checkbox" id="map-directed">
+                <span data-i18n="mapDirected">有向グラフ</span>
+            </label>
+            <div id="csv-preview"></div>
+            <div class="modal-actions">
+                <button type="button" class="secondary-btn" id="csv-cancel" data-i18n="cancel">キャンセル</button>
+                <button type="button" class="primary-btn" id="csv-apply" data-i18n="csvApply">グラフを作成</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="export-modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <h2 data-i18n="exportTitle">エクスポート</h2>
+            <p class="modal-help" data-i18n="exportHelp">PNGはタイトル・凡例・出典を含みます。SVGはグラフ本体です。</p>
+            <div class="modal-actions export-actions">
+                <button type="button" class="primary-btn" id="export-png-btn">PNG</button>
+                <button type="button" class="secondary-btn" id="export-svg-btn">SVG</button>
+                <button type="button" class="secondary-btn" id="export-cancel" data-i18n="cancel">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
     <script src="script.js" type="module"></script>
 </body>
 
